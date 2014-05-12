@@ -13,6 +13,16 @@ public class SingleTest {
 		File name = new File("/Users/andrea/Downloads/prova.txt");
 		new Apriori(name);
 		
+		
+		
+		
 	}
+	
+	
+
+	
+	
+	
 
 }
+

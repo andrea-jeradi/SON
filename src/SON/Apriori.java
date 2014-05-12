@@ -3,12 +3,8 @@
  */
 package SON;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.HashMap;
-import java.util.StringTokenizer;
 import java.util.Vector;
 
 /**
@@ -58,9 +54,11 @@ public class Apriori {
 		
 		Vector<HashMap<Vector<Integer>,Integer>> frequentItemset = new Vector<HashMap<Vector<Integer>,Integer>>();
 		
-		Vector<Integer> basket = new Vector<Integer>();
+		Vector<Integer> basket;
 		
-		File name = file;
+		BasketReader br = new BasketReader(file.getAbsolutePath());
+		
+		//File name = file;
 		
 		int basketReaded = 0;
 		
@@ -68,45 +66,24 @@ public class Apriori {
 		
 		int k = 0;
 		
-		try {
-			BufferedReader input = new BufferedReader(new FileReader(name));
-			String text;
-			StringTokenizer st;
-			
-			while ((text = input.readLine()) != null){
-				
-				basketReaded++;
-				
-				st = new StringTokenizer(text);
-				basket.clear();
-				
-				while (st.hasMoreTokens()) {
-			         basket.add(Integer.parseInt(st.nextToken()));
-		         }
-				
-				for(int item: basket){
-					if(frequentItem.containsKey(item)){
-						frequentItem.put(item, frequentItem.get(item)+1);
-					}
-					else{
-						frequentItem.put(item, 1);
-					}
-					
+		
+		
+		while((basket= br.nextBasket())!= null){
+			basketReaded++;
+			for(int item: basket){
+				if(frequentItem.containsKey(item)){
+					frequentItem.put(item, frequentItem.get(item)+1);
+				}
+				else{
+					frequentItem.put(item, 1);
 				}
 				
 			}
-			
-			input.close();
-			
-
-			} catch (IOException ioException) {
-				System.out.println("ERRORE LETTURA DA FILE.");
-				System.out.println(ioException);
-			}
+		}
 		
-		// Teniamo solo coppie veramente frequenti.
 		double frequent = basketReaded*s/100.0;
 		
+		// Teniamo solo item veramente frequenti.
 		int singolinonfrequenti=0;				
 		for(Integer key: frequentItem.keySet()){
 			if(frequentItem.get(key) < frequent){
@@ -115,60 +92,33 @@ public class Apriori {
 			}
 		}
 		
-		//secondo passo A-priori : gestione coppie
-		try {
-			BufferedReader input = new BufferedReader(new FileReader(name));
-			String text;
-			StringTokenizer st;
-
-			frequentItemset.add(new HashMap<Vector<Integer>,Integer>());
-
-			while ((text = input.readLine()) != null){
-				
-				st = new StringTokenizer(text);
-				basket.clear();
-				
-				while (st.hasMoreTokens()) {
-			         basket.add(Integer.parseInt(st.nextToken()));
-		         }
-				
-				for(int i=basket.size()-1; i >= 0; i--){
-					if(frequentItem.get(basket.get(i))==0){
-						basket.remove(i);
-					}	
-				}
-				
-				Vector<Integer> tmp;
-				for(int i: basket){
-					for(int j: basket){
-						if(i!=j){
-							tmp = new Vector<Integer>();
-							tmp.add(i);
-							tmp.add(j);
-							
-							if(!frequentItemset.get(k).containsKey(tmp))
-								frequentItemset.get(k).put(tmp, 1);
-							else{
-								frequentItemset.get(k).put(tmp, frequentItemset.get(k).get(tmp)+1);
-							}
-						}
-						else {
-							
-						}
-					}
-				}
-				
-				
+		//secondo passo A-priori : gestione coppie	
+		frequentItemset.add(new HashMap<Vector<Integer>,Integer>());
+		br.reset();
+		while((basket= br.nextBasket())!= null){
+			
+			//rimuovo dal basket gli item che non sono frequenti
+			for(int i=basket.size()-1; i >= 0; i--){
+				if(frequentItem.get(basket.get(i))==0){
+					basket.remove(i);
+				}	
 			}
 			
-			input.close();
-			
-
-			} catch (IOException ioException) {
-				System.out.println("ERRORE LETTURA DA FILE.");
-				System.out.println(ioException);
+			//genero tutte le possibili coppie
+			Vector<Integer> coppia;
+			Generatore g= new Generatore(basket,2);
+			while((coppia=g.next()) != null){
+				if(!frequentItemset.get(k).containsKey(coppia))
+					frequentItemset.get(k).put(coppia, 1);
+				else{
+					frequentItemset.get(k).put(coppia, frequentItemset.get(k).get(coppia)+1);
+				}
 			}
+			
+			
+		}
 		
+		//teniamo solo le coppie frequenti	
 		int coppienonfreqquenti=0;
 		for(Vector<Integer> pair :frequentItemset.get(k).keySet()){
 			if(frequentItemset.get(k).get(pair) < frequent){
@@ -178,43 +128,7 @@ public class Apriori {
 		}
 		
 		System.out.println("Singletone: "+(frequentItem.keySet().size()-singolinonfrequenti)+" DoubleTone: "+(frequentItemset.get(k).size()-coppienonfreqquenti));
-		int[][] prova = this.binomialCoeff(146, 2);
-		for(int i = 0; i < prova.length; i++){
-			for(int j = 0; j < prova[i].length; j++){
-				System.out.print(" "+prova[i][j]+"");
-			}
-			System.out.println("");
-		}
-	}
-	
-	// Returns value of Binomial Coefficient C(n, k)
-	int[][] binomialCoeff(int n, int k)
-	{
-	    int C[][] = new int[n+1][k+1];;
-	    int i, j;
-	 
-	    // Caculate value of Binomial Coefficient in bottom up manner
-	    for (i = 0; i <= n; i++)
-	    {
-	        for (j = 0; j <= min(i, k); j++)
-	        {
-	            // Base Cases
-	            if (j == 0 || j == i)
-	                C[i][j] = 1;
-	 
-	            // Calculate value using previosly stored values
-	            else
-	                C[i][j] = C[i-1][j-1] + C[i-1][j];
-	        }
-	    }
-	 
-	    return C;
-	}
-	 
-	// A utility function to return minimum of two integers
-	int min(int a, int b)
-	{
-	    return a<b?a:b;
+		
 	}
 
 }
