@@ -10,7 +10,7 @@ public class SingleTest {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		
-		File name = new File("/Users/andrea/Downloads/prova.txt");
+		File name = new File("/Users/fd/Downloads/prova3.txt");
 		new Apriori(name);
 		
 		
