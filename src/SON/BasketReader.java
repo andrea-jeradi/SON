@@ -39,15 +39,20 @@ public class BasketReader {
 		
 	}
 	
-	public Vector<Integer> nextBasket() throws IOException {
+	public Vector<Integer> nextBasket() {
 		String text;
 		StringTokenizer st = null;
 		Vector<Integer> items = new Vector<Integer>();
 		// Se ci sono ancora basket nel file.
-		if ((text = input.readLine()) != null) // Leggo un basket.
-			st = new StringTokenizer(text); // Tokenizzo il basket.
-		else
-			return null;
+		try {
+			if ((text = input.readLine()) != null) // Leggo un basket.
+				st = new StringTokenizer(text); // Tokenizzo il basket.
+			else
+				return null;
+		} catch (IOException e) {
+			System.out.println("Errore nella lettura del file: "+fp);
+			e.printStackTrace();
+		}
 		
 		while(st.hasMoreTokens()) {
 			items.add(Integer.parseInt(st.nextToken())); // Aggiungo ogni item al vettore.
