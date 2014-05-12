@@ -31,7 +31,7 @@ public class BasketReader {
 		this.fp = FilePath;
 		this.name = new File(fp);
 		try {
-			input = new BufferedReader(new FileReader(fp));
+			input = new BufferedReader(new FileReader(name));
 		} catch (FileNotFoundException e) {
 			System.out.println("Errore nella lettura del file: "+fp);
 			e.printStackTrace();
@@ -73,7 +73,7 @@ public class BasketReader {
 		this.name = new File(fp);
 		
 		try {
-			input = new BufferedReader(new FileReader(fp));
+			input = new BufferedReader(new FileReader(name));
 		} catch (FileNotFoundException e) {
 			System.out.println("Errore nella lettura del file: "+fp);
 			e.printStackTrace();
