@@ -7,8 +7,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Vector;
 
-import sun.security.provider.SystemSigner;
-
 /**
  * @author andrea
  *
@@ -109,7 +107,6 @@ public class Apriori {
 		boolean findNofrequnet;
 		while(count >=2 ){
 			k++;
-			// TODO: eliminare da frequentItemset gli itemset di dimensione k-2 tranne i singleton
 			frequentItemset.add(new HashMap<Vector<Integer>,Integer>());
 			Ck = frequentItemset.get(frequentItemset.size() - 1 );
 			prevCk = frequentItemset.get(frequentItemset.size() - 2 );
@@ -150,10 +147,14 @@ public class Apriori {
 		
 			}
 			
+						
 			count=0;
 			for(Vector<Integer> itemset :Ck.keySet()){
 				if(Ck.get(itemset) < frequent){
 					Ck.put(itemset,0);
+					
+					
+					
 				}
 				else{
 					count++;
@@ -161,6 +162,8 @@ public class Apriori {
 						System.out.print(item+" ");
 					System.out.println();
 				}
+				
+				
 			}
 			
 			System.out.println(k+"-tone trovati: "+count);
@@ -171,7 +174,6 @@ public class Apriori {
 	}
 
 	private void preProcessingBasket(Vector<Integer> basket, int k){
-		int sum;
 		
 		//rimuovo dal basket gli item che non sono frequenti
 		for(int i=basket.size()-1; i >= 0; i--){
@@ -197,16 +199,16 @@ public class Apriori {
 		}
 		
 		if(k>2){
-			//per ogni elemento devo verificare se  presente il almeno k degli k-1 - itemset
+			//per ogni elemento devo verificare se  presente il almeno k dei frequent itemset di dimensione k-1
 			for(int i=basket.size()-1; i >= 0; i--){
 				sum=0;
 				for(Vector<Integer> itemset :prevCk.keySet()){
 					if(itemset.contains(basket.get(i))){
 						sum++;
 					}
-					if(sum>=k) break;
+					if(sum>=(k-1)) break;
 				}
-				if(sum<k)
+				if(sum<(k-1))
 					basket.remove(i);
 				
 			}
