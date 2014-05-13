@@ -1,4 +1,4 @@
-package SON;
+package FrequentItemset;
 
 import java.io.File;
 

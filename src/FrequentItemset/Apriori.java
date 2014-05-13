@@ -1,7 +1,7 @@
 /**
  * 
  */
-package SON;
+package FrequentItemset;
 
 import java.io.File;
 import java.util.HashMap;
@@ -199,7 +199,7 @@ public class Apriori {
 		}
 		
 		if(k>2){
-			//per ogni elemento devo verificare se  presente il almeno k dei frequent itemset di dimensione k-1
+			//per ogni elemento devo verificare se ï¿½ presente il almeno k dei frequent itemset di dimensione k-1
 			for(int i=basket.size()-1; i >= 0; i--){
 				sum=0;
 				for(Vector<Integer> itemset :prevCk.keySet()){

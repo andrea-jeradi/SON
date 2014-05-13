@@ -1,7 +1,7 @@
 /**
  * 
  */
-package SON;
+package FrequentItemset;
 
 import java.io.BufferedReader;
 import java.io.File;
