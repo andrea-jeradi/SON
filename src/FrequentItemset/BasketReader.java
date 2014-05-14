@@ -23,11 +23,14 @@ public class BasketReader {
 	private File name;
 	
 	private BufferedReader input;
+	
+	private Vector<Vector<Integer>> baskets = null;
+	
+	private int current;
 	/**
 	 * 
 	 */
 	public BasketReader(String FilePath) {
-		// TODO Auto-generated constructor stub
 		this.fp = FilePath;
 		this.name = new File(fp);
 		try {
@@ -39,24 +42,36 @@ public class BasketReader {
 		
 	}
 	
+	public BasketReader(Vector<Vector<Integer>> b){
+		this.baskets = b;
+		this.current = 0;
+	}
+	
 	public Vector<Integer> nextBasket() {
 		String text;
 		StringTokenizer st = null;
 		Vector<Integer> items = new Vector<Integer>();
-		// Se ci sono ancora basket nel file.
-		try {
-			if ((text = input.readLine()) != null) // Leggo un basket.
-				st = new StringTokenizer(text); // Tokenizzo il basket.
-			else
-				return null;
-		} catch (IOException e) {
-			System.out.println("Errore nella lettura del file: "+fp);
-			e.printStackTrace();
-		}
 		
-		while(st.hasMoreTokens()) {
-			items.add(Integer.parseInt(st.nextToken())); // Aggiungo ogni item al vettore.
+		if(baskets!=null){ //Non sto leggengo da file quindi sono nel secondo costruttore.
+			items = baskets.get(current); //prendo la riga corrente.
+			current++; 
 		}
+		else{
+			// Se ci sono ancora basket nel file.
+			try {
+				if ((text = input.readLine()) != null) // Leggo un basket.
+					st = new StringTokenizer(text); // Tokenizzo il basket.
+				else
+					return null;
+			} catch (IOException e) {
+				System.out.println("Errore nella lettura del file: "+fp);
+				e.printStackTrace();
+			}
+			
+			while(st.hasMoreTokens()) {
+				items.add(Integer.parseInt(st.nextToken())); // Aggiungo ogni item al vettore.
+			}
+		}// Chiudo else selezione costruttore.
 		
 		Collections.sort(items);
 		return items;
@@ -64,21 +79,26 @@ public class BasketReader {
 	}
 	
 	public void reset(){
-		try {
-			input.close();
-		} catch (IOException e) {
-			System.out.print("Errore nella chiusura del file.");
-			e.printStackTrace();
+		if(baskets != null) { // Sono nel secondo costruttore.
+			current = 0;
+			return;
 		}
-		this.name = new File(fp);
-		
-		try {
-			input = new BufferedReader(new FileReader(name));
-		} catch (FileNotFoundException e) {
-			System.out.println("Errore nella lettura del file: "+fp);
-			e.printStackTrace();
+		else {
+			try {
+				input.close();
+			} catch (IOException e) {
+				System.out.print("Errore nella chiusura del file.");
+				e.printStackTrace();
+			}
+			this.name = new File(fp);
+			
+			try {
+				input = new BufferedReader(new FileReader(name));
+			} catch (FileNotFoundException e) {
+				System.out.println("Errore nella lettura del file: "+fp);
+				e.printStackTrace();
+			}	
 		}
-		
 	}
 
 }
