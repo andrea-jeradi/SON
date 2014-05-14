@@ -13,56 +13,88 @@ import java.util.Vector;
  */
 public class Apriori {
 	
-	HashMap<Integer, Integer> frequentItem;
+	//private HashMap<Integer, Integer> frequentItem;
+	private Vector<HashMap<Vector<Integer>,Integer>> frequentItemset;
+	private HashMap<Vector<Integer>,Integer> Ck, prevCk;
+	BasketReader br;
+	double frequent;
+	int s;
 	
-	public Apriori(File file) {
+	public Apriori(File file,int s) {
 		
-		frequentItem = new HashMap<Integer,Integer>();
+		this.s = s;
+		
+		//frequentItem = new HashMap<Integer,Integer>();
 		
 		//HashMap<Vector<Integer>,Integer> kTone = new HashMap<Vector<Integer>,Integer>();
 		
-		Vector<HashMap<Vector<Integer>,Integer>> frequentItemset = new Vector<HashMap<Vector<Integer>,Integer>>();
+		frequentItemset = new Vector<HashMap<Vector<Integer>,Integer>>();
+		
+		
+		
+		br = new BasketReader(file.getAbsolutePath());
+		
+	}
+	
+	public Apriori(Vector<Vector<Integer>> baskets,int s) {
+		
+		this.s = s;
+	
+		
+		frequentItemset = new Vector<HashMap<Vector<Integer>,Integer>>();
+		
+		
+		
+		br = new BasketReader(baskets);
+		
+	}
+	
+	
+	
+	public void start(){	
+		
+		int basketReaded = 0;
+		int k = 1;
+		int count=0;
 		
 		Vector<Integer> basket;
 		
-		BasketReader br = new BasketReader(file.getAbsolutePath());
-		
-		HashMap<Vector<Integer>,Integer> Ck, prevCk;
-		
-		
-		int basketReaded = 0;
-		
-		int s = 30;
-		
-		int k = 1;
-		
-		int count=0;
-		
 		//gestione singletone
+		k=1;
+		frequentItemset.add(new HashMap<Vector<Integer>,Integer>());
+		Ck = frequentItemset.get(frequentItemset.size() -1);
 		while((basket= br.nextBasket())!= null){
 			basketReaded++;
-			for(int item: basket){
-				if(frequentItem.containsKey(item)){
-					frequentItem.put(item, frequentItem.get(item)+1);
-				}
+			
+			//genero tutte le possibili coppie
+			Vector<Integer> item;
+			Generatore g= new Generatore(basket,k);
+			while((item=g.next()) != null){
+				if(!Ck.containsKey(item))
+					Ck.put(item, 1);
 				else{
-					frequentItem.put(item, 1);
+					Ck.put(item, Ck.get(item)+1);
 				}
-				
 			}
+			
+			
 		}
 		
-		double frequent = basketReaded*s/100.0;
+		frequent = basketReaded*s/100.0;
 		System.out.println(frequent);
 		
 		// Teniamo solo item veramente frequenti.
 		int singolinonfrequenti=0;				
-		for(Integer key: frequentItem.keySet()){
-			if(frequentItem.get(key) < frequent){
-				frequentItem.put(key, 0);
+		for(Vector<Integer> singleton :Ck.keySet()){
+			if(Ck.get(singleton) < frequent){
+				Ck.put(singleton,0);
 				singolinonfrequenti++;
 			}
+			else
+				count++;
 		}
+		
+		System.out.println("Singletone: "+(Ck.size()-singolinonfrequenti));
 		
 		//secondo passo A-priori : gestione coppie	
 		k=2;
@@ -72,11 +104,11 @@ public class Apriori {
 		br.reset();
 		while((basket= br.nextBasket())!= null){
 			
-			this.preProcessingBasket(basket,k);
+			this.preProcessingBasket(basket,k,null);
 			
 			//genero tutte le possibili coppie
 			Vector<Integer> coppia;
-			Generatore g= new Generatore(basket,2);
+			Generatore g= new Generatore(basket,k);
 			while((coppia=g.next()) != null){
 				if(!Ck.containsKey(coppia))
 					Ck.put(coppia, 1);
@@ -99,7 +131,7 @@ public class Apriori {
 				count++;
 		}
 		
-		System.out.println("Singletone: "+(frequentItem.keySet().size()-singolinonfrequenti)+" DoubleTone: "+(Ck.size()-coppienonfreqquenti));
+		System.out.println(" DoubleTone: "+(Ck.size()-coppienonfreqquenti));
 		
 		//gestione itemset di dimensione k>2
 		Vector<Integer> kTone, prevKtone;
@@ -173,7 +205,7 @@ public class Apriori {
 		
 	}
 
-	private void preProcessingBasket(Vector<Integer> basket, int k){
+	/*private void preProcessingBasket(Vector<Integer> basket, int k){
 		
 		//rimuovo dal basket gli item che non sono frequenti
 		for(int i=basket.size()-1; i >= 0; i--){
@@ -183,17 +215,19 @@ public class Apriori {
 		}
 		
 		
-}
+}*/
 
 
 
 	
 	private void preProcessingBasket(Vector<Integer> basket, int k, HashMap<Vector<Integer>,Integer> prevCk){
 		int sum;
+		Vector<Integer> temp= new Vector<Integer>();temp.add(-1);
 		
 		//rimuovo dal basket gli item che non sono frequenti
-		for(int i=basket.size()-1; i >= 0; i--){
-			if(frequentItem.get(basket.get(i))==0){
+		for(int i=basket.size()-1; i >= 0; i--){			
+			temp.set(0, basket.get(i));
+			if(frequentItemset.get(0).get(temp)==0){
 				basket.remove(i);
 			}	
 		}
@@ -215,6 +249,20 @@ public class Apriori {
 			
 		}
 		
+	}
+	
+	public Vector<Vector<Integer>> getCandidateItemset(){
+		Vector<Vector<Integer>> res = new Vector<Vector<Integer>>();
+		
+		for(HashMap<Vector<Integer>,Integer> Ck : frequentItemset){
+			for(Vector<Integer> itemset :Ck.keySet()){
+				if(Ck.get(itemset) != 0){
+					res.add(itemset);
+				}
+			}
+		}
+		
+		return res;
 	}
 }
 

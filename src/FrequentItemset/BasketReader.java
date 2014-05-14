@@ -53,6 +53,8 @@ public class BasketReader {
 		Vector<Integer> items = new Vector<Integer>();
 		
 		if(baskets!=null){ //Non sto leggengo da file quindi sono nel secondo costruttore.
+			if(baskets.size()<=current)
+				return null; // Finito la lettura dei baskets.
 			items = baskets.get(current); //prendo la riga corrente.
 			current++; 
 		}
