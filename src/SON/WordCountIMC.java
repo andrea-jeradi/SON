@@ -1,6 +1,9 @@
 package SON;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.StringTokenizer;
+import java.util.Vector;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
@@ -19,10 +22,6 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
 import FrequentItemset.Apriori;
-
-import java.util.Collections;
-import java.util.StringTokenizer;
-import java.util.Vector;
 /**
  * Word Count example of MapReduce job. Given a plain text in input, this job
  * counts how many occurrences of each word there are in that text and writes
@@ -54,6 +53,9 @@ public class WordCountIMC extends Configured implements Tool {
 	job.setOutputValueClass(IntWritable.class);
 	//set job output format
 	job.setOutputFormatClass(TextOutputFormat.class);
+	
+//	job.setSortComparatorClass(ItemsetComparator.class);
+	
 	//add the input file as job input (from HDFS)
 	FileInputFormat.addInputPath(job, inputPath);
 	//set the output path for the job results (to HDFS)
@@ -128,9 +130,26 @@ class WCIMCMapper extends Mapper<LongWritable, //input key type //è l offset de
 		Itemset app = new Itemset();
 		IntWritable one = new IntWritable(1);
 		
+		Vector<Integer> c= new Vector<Integer>();
+		
 		for(Vector<Integer> itemset: a.getCandidateItemset()){
-			app.set(itemset);
-			context.write(app, one);
+			//app.set(itemset);
+			app= new Itemset(itemset);
+			
+			
+					
+			//verifico la hash
+			if(c.contains(app.hashCode())){
+				System.out.println("cazzo: sono ugali");
+			}
+			else
+				c.add(app.hashCode());
+				
+			
+			
+			
+			context.write(app, new IntWritable(1));
+			System.out.println("n. ="+itemset.size());
 		}
 		
 	}
@@ -148,7 +167,15 @@ class WCIMCReducer extends Reducer<Itemset, //input key type
 	protected void reduce(Itemset key, //input key type
 							Iterable<IntWritable> values, //input value type
 							Context context) throws IOException, InterruptedException {
-						
+		
+		int sum=0;
+		  for(IntWritable i:values)
+			  sum += i.get();
+		  
+		  
+			
+		System.out.println("sum:"+sum);
+		
 		context.write(key, one);
 	
 	}
