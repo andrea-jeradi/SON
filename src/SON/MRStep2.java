@@ -1,13 +1,20 @@
 package SON;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.viewfs.ViewFileSystem;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -19,17 +26,12 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
-import org.apache.hadoop.util.ToolRunner;
 
-import FrequentItemset.Apriori;
-
-public class WordCountIMC extends Configured implements Tool {
+public class MRStep2 extends Configured implements Tool {
 
   private int numReducers;
   private Path inputPath;
   private Path outputDir;
-  
-  long nRighe = -1;
 
   @Override
   public int run(String[] args) throws Exception {
@@ -37,15 +39,15 @@ public class WordCountIMC extends Configured implements Tool {
 	Configuration conf = this.getConf();
 			
 	//define new job instead of null using conf e setting a name
-	Job job = new Job(conf, "SON_step1");
+	Job job = new Job(conf, "SON_step2");
 	//set job input format
 	job.setInputFormatClass(TextInputFormat.class);
 	//set map class and the map output key and value classes
-	job.setMapperClass(WCIMCMapper.class);
+	job.setMapperClass(MRStep2Mapper.class);
 	job.setMapOutputKeyClass(Itemset.class);
 	job.setMapOutputValueClass(IntWritable.class);
 	//set reduce class and the reduce output key and value classes
-	job.setReducerClass(WCIMCReducer.class);
+	job.setReducerClass(MRStep2Reducer.class);
 	job.setOutputKeyClass(Itemset.class);
 	job.setOutputValueClass(IntWritable.class);
 	//set job output format
@@ -62,50 +64,68 @@ public class WordCountIMC extends Configured implements Tool {
 	//set the jar class
 	job.setJarByClass(getClass());
 	
-	job.waitForCompletion(true); //? 0 : 1; // this will execute the job
-	
-	Long card = job.getCounters().findCounter("org.apache.hadoop.mapred.Task$Counter", "MAP_INPUT_RECORDS").getValue();
-	return card.intValue();
+	return job.waitForCompletion(true) ? 0 : 1; // this will execute the job
   }
 
-  public WordCountIMC (String[] args) {
+  public MRStep2 (String[] args) {
     if (args.length != 3) {
-      System.out.println("Usage: WordCountIMC <num_reducers> <input_path> <output_path>");
+      System.out.println("Usage: MRStep2 <num_reducers> <input_path> <output_path>");
       System.exit(0);
     }
     this.numReducers = Integer.parseInt(args[0]);
     this.inputPath = new Path(args[1]);
     this.outputDir = new Path(args[2]);
-  }
-  
-  public static void main(String args[]) throws Exception {
-	Configuration conf = new Configuration();
-	conf.set("mapred.map.child.java.opts", "-Xmx512m");
-	conf.setInt("s", 40);
-	  
-	String tmp = args[2]; 
-	args[2]=args[2]+"_tmp";
-	
-    int res = ToolRunner.run(conf, new WordCountIMC(args), args);
-    args[2]= tmp;
-    
-    conf.setInt("basketReaded", res);
-    
-    int res1 = ToolRunner.run(conf, new MRStep2(args), args);
-    System.exit(res);
-  }
+  }  
+
 }
 
-class WCIMCMapper extends Mapper<LongWritable, //input key type //è l offset del file testo
+class MRStep2Mapper extends Mapper<LongWritable, //input key type //è l offset del file testo
 									Text, //input value type //è la riga i-esima del file
 									Itemset, //output key type
 									IntWritable> {//change Object to output value type
 
-	private Vector<Vector<Integer>> baskets;
+	HashMap<Vector<Integer>,Integer> candidateItemset = new HashMap<Vector<Integer>,Integer>();
+	
 	
 	@Override
   	protected void setup(Context context){
-		baskets = new Vector<Vector<Integer>>();
+		
+		try {
+			System.out.println(context.getWorkingDirectory().toString());
+			System.out.println(FileOutputFormat.getOutputPath(context).toString());
+			
+			Path path = new Path(FileOutputFormat.getOutputPath(context).toString()+"_tmp");
+			FileSystem fs =  FileSystem.get(path.toUri(),context.getConfiguration());
+			FSDataInputStream  file;
+			BufferedReader input;
+			FileStatus[] status = fs.listStatus(path);
+			String text;
+		
+			for(FileStatus st : status){
+				if(st.isFile() && !st.getPath().toString().contains("_SUCCESS")){
+					System.out.println("file dir: "+st.getPath());
+					
+					
+					file = fs.open(st.getPath());
+					input = new BufferedReader(new InputStreamReader(file));
+					
+						while ((text = input.readLine()) != null) {
+							text= text.substring(0, text.length()-2).trim();
+							candidateItemset.put(createBasket(text), 0);
+						}
+				}
+			}
+			
+			
+				
+			
+			
+		} catch (IOException e) {
+			
+			e.printStackTrace();
+		}
+
+		
   	}
 	
 	@Override
@@ -114,7 +134,21 @@ class WCIMCMapper extends Mapper<LongWritable, //input key type //è l offset de
 						  Context context) throws IOException, InterruptedException {
 		
 		String line = value.toString();
-		baskets.add(createBasket(line));
+		Vector<Integer> basket = createBasket(line); 
+		boolean find;
+		
+		for(Vector<Integer> itemset :candidateItemset.keySet()){
+			find = true;
+			for(int item: itemset){
+				if(! basket.contains(item)){
+					find = false;
+					break;
+				}
+			}
+			if(find){
+				candidateItemset.put(itemset, candidateItemset.get(itemset) + 1);
+			}
+		}
 		
   	}
 	
@@ -136,34 +170,48 @@ class WCIMCMapper extends Mapper<LongWritable, //input key type //è l offset de
   
   	@Override
   	protected void cleanup(Context context) throws IOException, InterruptedException {
-  		Apriori a = new Apriori(baskets,context.getConfiguration().getInt("s", 100));
-		a.start();
-		
-		Itemset app = new Itemset();
-		IntWritable one = new IntWritable(1);
-		
-		for(Vector<Integer> itemset: a.getCandidateItemset()){
+  		Itemset app = new Itemset();
+  		IntWritable count = new IntWritable();
+  		for(Vector<Integer> itemset :candidateItemset.keySet()){
 			app.set(itemset);
-			context.write(app, one);
+			count.set(candidateItemset.get(itemset));
+			context.write(app, count);
 		}
-		
+  		
 	}
 }
 
-class WCIMCReducer extends Reducer<Itemset, //input key type
+class MRStep2Reducer extends Reducer<Itemset, //input key type
 									IntWritable, //input value type
 									Itemset, //output key type
 									IntWritable> { //output value type
 	
-	private IntWritable one = new IntWritable(1);
+	double frequent;
+	IntWritable count = new IntWritable();
 	
+	@Override
+  	protected void setup(Context context){
+		long basketReaded = context.getConfiguration().getInt("basketReaded", Integer.MAX_VALUE);
+		int s = context.getConfiguration().getInt("s", 100);
+		
+		frequent = basketReaded*s/100.0;
+	}
 
 	@Override
 	protected void reduce(Itemset key, //input key type
 							Iterable<IntWritable> values, //input value type
 							Context context) throws IOException, InterruptedException {
 		
-		context.write(key, one);
+		int sum=0;
+		  for(IntWritable i:values)
+			  sum += i.get();
+		  
+		  if(sum >= frequent){
+			  count.set(sum);
+			  context.write(key, count);
+		  }
+		
 	
 	}
 }
+
