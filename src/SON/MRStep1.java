@@ -23,13 +23,12 @@ import org.apache.hadoop.util.ToolRunner;
 
 import FrequentItemset.Apriori;
 
-public class WordCountIMC extends Configured implements Tool {
+public class MRStep1 extends Configured implements Tool {
 
   private int numReducers;
   private Path inputPath;
   private Path outputDir;
   
-  long nRighe = -1;
 
   @Override
   public int run(String[] args) throws Exception {
@@ -41,11 +40,11 @@ public class WordCountIMC extends Configured implements Tool {
 	//set job input format
 	job.setInputFormatClass(TextInputFormat.class);
 	//set map class and the map output key and value classes
-	job.setMapperClass(WCIMCMapper.class);
+	job.setMapperClass(MRStep1Mapper.class);
 	job.setMapOutputKeyClass(Itemset.class);
 	job.setMapOutputValueClass(IntWritable.class);
 	//set reduce class and the reduce output key and value classes
-	job.setReducerClass(WCIMCReducer.class);
+	job.setReducerClass(MRStep1Reducer.class);
 	job.setOutputKeyClass(Itemset.class);
 	job.setOutputValueClass(IntWritable.class);
 	//set job output format
@@ -59,44 +58,60 @@ public class WordCountIMC extends Configured implements Tool {
 	FileOutputFormat.setOutputPath(job, outputDir);
 	//set the number of reducers. This is optional and by default is 1
 	job.setNumReduceTasks(numReducers);
+	
+	
 	//set the jar class
 	job.setJarByClass(getClass());
 	
+	//run the first job
 	job.waitForCompletion(true); //? 0 : 1; // this will execute the job
 	
-	Long card = job.getCounters().findCounter("org.apache.hadoop.mapred.Task$Counter", "MAP_INPUT_RECORDS").getValue();
-	return card.intValue();
+	//get the number of records and store it in a configuration variable
+	Long nRecord = job.getCounters().findCounter("org.apache.hadoop.mapred.Task$Counter", "MAP_INPUT_RECORDS").getValue();
+	//conf.setLong("basketReaded", nRecord);
+	return nRecord.intValue();
+	
+	//return res ? 0 : 1;
   }
 
-  public WordCountIMC (String[] args) {
-    if (args.length != 3) {
-      System.out.println("Usage: WordCountIMC <num_reducers> <input_path> <output_path>");
-      System.exit(0);
-    }
-    this.numReducers = Integer.parseInt(args[0]);
-    this.inputPath = new Path(args[1]);
-    this.outputDir = new Path(args[2]);
+  
+  public MRStep1(int numReducers, Path inputPath, Path outputDir){
+	  this.numReducers = numReducers; 
+	  this.inputPath = inputPath;
+	  this.outputDir = outputDir;
   }
   
+  
+  
   public static void main(String args[]) throws Exception {
+	if (args.length != 4) {
+      System.out.println("Usage: SON <num_reducers> <support_threshold> <input_path> <output_path>");
+      System.exit(0);
+    }
+	
+	int numReducers = Integer.parseInt(args[0]);
+	int supportThreshold = Integer.parseInt(args[1]);
+	Path inputPath = new Path(args[2]);
+	Path outputDir = new Path(args[3]);
+	Path tmpOutputDir = new Path(outputDir.toString()+"_tmp"); 
+	
+	
 	Configuration conf = new Configuration();
 	conf.set("mapred.map.child.java.opts", "-Xmx512m");
-	conf.setInt("s", 40);
+	conf.setInt("s", supportThreshold);
 	  
-	String tmp = args[2]; 
-	args[2]=args[2]+"_tmp";
 	
-    int res = ToolRunner.run(conf, new WordCountIMC(args), args);
-    args[2]= tmp;
+	
+    int nRecord = ToolRunner.run(conf, new MRStep1(numReducers, inputPath, tmpOutputDir), args);
+    conf.setInt("basketReaded", nRecord);
     
-    conf.setInt("basketReaded", res);
+    int res = ToolRunner.run(conf, new MRStep2(numReducers, inputPath, outputDir), args);
     
-    int res1 = ToolRunner.run(conf, new MRStep2(args), args);
     System.exit(res);
   }
 }
 
-class WCIMCMapper extends Mapper<LongWritable, //input key type //è l offset del file testo
+class MRStep1Mapper extends Mapper<LongWritable, //input key type //è l offset del file testo
 									Text, //input value type //è la riga i-esima del file
 									Itemset, //output key type
 									IntWritable> {//change Object to output value type
@@ -118,7 +133,7 @@ class WCIMCMapper extends Mapper<LongWritable, //input key type //è l offset de
 		
   	}
 	
-	private Vector<Integer> createBasket(String text){
+	public static Vector<Integer> createBasket(String text){
 		StringTokenizer st = null;
 		Vector<Integer> items = new Vector<Integer>();
 		
@@ -136,6 +151,7 @@ class WCIMCMapper extends Mapper<LongWritable, //input key type //è l offset de
   
   	@Override
   	protected void cleanup(Context context) throws IOException, InterruptedException {
+  		System.out.println("soglia map="+context.getConfiguration().getInt("s", 100));
   		Apriori a = new Apriori(baskets,context.getConfiguration().getInt("s", 100));
 		a.start();
 		
@@ -150,10 +166,10 @@ class WCIMCMapper extends Mapper<LongWritable, //input key type //è l offset de
 	}
 }
 
-class WCIMCReducer extends Reducer<Itemset, //input key type
-									IntWritable, //input value type
-									Itemset, //output key type
-									IntWritable> { //output value type
+class MRStep1Reducer extends Reducer<Itemset,
+									IntWritable,
+									Itemset,
+									IntWritable> {
 	
 	private IntWritable one = new IntWritable(1);
 	

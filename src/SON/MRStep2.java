@@ -3,9 +3,7 @@ package SON;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.StringTokenizer;
 import java.util.Vector;
 
 import org.apache.hadoop.conf.Configuration;
@@ -14,7 +12,6 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.viewfs.ViewFileSystem;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -67,15 +64,11 @@ public class MRStep2 extends Configured implements Tool {
 	return job.waitForCompletion(true) ? 0 : 1; // this will execute the job
   }
 
-  public MRStep2 (String[] args) {
-    if (args.length != 3) {
-      System.out.println("Usage: MRStep2 <num_reducers> <input_path> <output_path>");
-      System.exit(0);
-    }
-    this.numReducers = Integer.parseInt(args[0]);
-    this.inputPath = new Path(args[1]);
-    this.outputDir = new Path(args[2]);
-  }  
+  public MRStep2(int numReducers, Path inputPath, Path outputDir){
+	  this.numReducers = numReducers; 
+	  this.inputPath = inputPath;
+	  this.outputDir = outputDir;
+  }
 
 }
 
@@ -90,16 +83,21 @@ class MRStep2Mapper extends Mapper<LongWritable, //input key type //è l offset 
 	@Override
   	protected void setup(Context context){
 		
+		Path path;
+		FileSystem fs;
+		FSDataInputStream  file;
+		BufferedReader input;
+		FileStatus[] status;
+		String text;
+		
 		try {
 			System.out.println(context.getWorkingDirectory().toString());
 			System.out.println(FileOutputFormat.getOutputPath(context).toString());
+					
 			
-			Path path = new Path(FileOutputFormat.getOutputPath(context).toString()+"_tmp");
-			FileSystem fs =  FileSystem.get(path.toUri(),context.getConfiguration());
-			FSDataInputStream  file;
-			BufferedReader input;
-			FileStatus[] status = fs.listStatus(path);
-			String text;
+			path = new Path(FileOutputFormat.getOutputPath(context).toString()+"_tmp");
+			fs = FileSystem.get(path.toUri(),context.getConfiguration());
+			status = fs.listStatus(path);
 		
 			for(FileStatus st : status){
 				if(st.isFile() && !st.getPath().toString().contains("_SUCCESS")){
@@ -111,17 +109,12 @@ class MRStep2Mapper extends Mapper<LongWritable, //input key type //è l offset 
 					
 						while ((text = input.readLine()) != null) {
 							text= text.substring(0, text.length()-2).trim();
-							candidateItemset.put(createBasket(text), 0);
+							candidateItemset.put(MRStep1Mapper.createBasket(text), 0);
 						}
 				}
 			}
-			
-			
-				
-			
-			
+								
 		} catch (IOException e) {
-			
 			e.printStackTrace();
 		}
 
@@ -129,12 +122,12 @@ class MRStep2Mapper extends Mapper<LongWritable, //input key type //è l offset 
   	}
 	
 	@Override
-  	protected void map( LongWritable key, //input key type
-						  Text value, //input value type
+  	protected void map( LongWritable key,
+						  Text value,
 						  Context context) throws IOException, InterruptedException {
 		
 		String line = value.toString();
-		Vector<Integer> basket = createBasket(line); 
+		Vector<Integer> basket = MRStep1Mapper.createBasket(line); 
 		boolean find;
 		
 		for(Vector<Integer> itemset :candidateItemset.keySet()){
@@ -152,19 +145,7 @@ class MRStep2Mapper extends Mapper<LongWritable, //input key type //è l offset 
 		
   	}
 	
-	private Vector<Integer> createBasket(String text){
-		StringTokenizer st = null;
-		Vector<Integer> items = new Vector<Integer>();
-		
-		st = new StringTokenizer(text); // Tokenizzo il basket.
-			
-		while(st.hasMoreTokens()) {
-			items.add(Integer.parseInt(st.nextToken())); // Aggiungo ogni item al vettore.
-		}
-		
-		Collections.sort(items);
-		return items;
-	}
+
 	
   	
   
