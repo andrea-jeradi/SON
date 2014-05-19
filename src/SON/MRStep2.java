@@ -153,10 +153,15 @@ class MRStep2Mapper extends Mapper<LongWritable, //input key type //è l offset 
   	protected void cleanup(Context context) throws IOException, InterruptedException {
   		Itemset app = new Itemset();
   		IntWritable count = new IntWritable();
+  		int temp;
+  		
   		for(Vector<Integer> itemset :candidateItemset.keySet()){
-			app.set(itemset);
-			count.set(candidateItemset.get(itemset));
-			context.write(app, count);
+  			temp = candidateItemset.get(itemset);
+  			if(temp > 0){
+				app.set(itemset);
+				count.set(temp);
+				context.write(app, count);
+			}
 		}
   		
 	}
