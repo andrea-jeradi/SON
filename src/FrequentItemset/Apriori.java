@@ -3,9 +3,13 @@
  */
 package FrequentItemset;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Vector;
+
+import org.apache.hadoop.fs.FSDataOutputStream;
 
 /**
  * @author andrea
@@ -19,6 +23,9 @@ public class Apriori {
 	BasketReader br;
 	double frequent;
 	int s;
+	
+	
+	BufferedWriter  bw;
 	
 	public Apriori(File file,int s) {
 		
@@ -49,9 +56,24 @@ public class Apriori {
 		
 	}
 	
+public Apriori(Vector<Vector<Integer>> baskets,int s, BufferedWriter out) {
+		
+		this.s = s;
+	
+		
+		frequentItemset = new Vector<HashMap<Vector<Integer>,Integer>>();
+		
+		
+		
+		br = new BasketReader(baskets);
+		
+		this.bw= out; 
+		
+	}
 	
 	
-	public void start(){	
+	
+	public void start() throws IOException{	
 		
 		int basketReaded = 0;
 		int k = 1;
@@ -81,7 +103,7 @@ public class Apriori {
 		}
 		
 		frequent = basketReaded*s/100.0;
-		System.out.println(frequent);
+		if(bw != null) {bw.write(""+frequent+"\n");bw.flush();}
 		
 		// Teniamo solo item veramente frequenti.
 		int singolinonfrequenti=0;				
@@ -94,7 +116,7 @@ public class Apriori {
 				count++;
 		}
 		
-		System.out.println("Singletone: "+(Ck.size()-singolinonfrequenti));
+		if(bw != null){ bw.write("Singletone: "+(Ck.size()-singolinonfrequenti+"\n"));bw.flush();}
 		
 		//secondo passo A-priori : gestione coppie	
 		k=2;
@@ -131,7 +153,7 @@ public class Apriori {
 				count++;
 		}
 		
-		System.out.println(" DoubleTone: "+(Ck.size()-coppienonfreqquenti));
+		if(bw != null){ bw.write(" DoubleTone: "+(Ck.size()-coppienonfreqquenti+"\n"));bw.flush();}
 		
 		//gestione itemset di dimensione k>2
 		Vector<Integer> kTone, prevKtone;
@@ -191,14 +213,14 @@ public class Apriori {
 				else{
 					count++;
 					for(int item: itemset)
-						System.out.print(item+" ");
-					System.out.println();
+						if(bw != null) bw.write(item+" ");
+					if(bw != null) bw.write("\n");
 				}
 				
 				
 			}
 			
-			System.out.println(k+"-tone trovati: "+count);
+			if(bw != null){ bw.write(k+"-tone trovati: "+count+"\n");bw.flush();}
 			
 		}
 		

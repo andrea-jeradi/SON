@@ -101,7 +101,7 @@ class MRStep2Mapper extends Mapper<LongWritable, //input key type //è l offset 
 		
 			for(FileStatus st : status){
 				if(st.isFile() && !st.getPath().toString().contains("_SUCCESS")){
-					System.out.println("file dir: "+st.getPath());
+					//System.out.println("file dir: "+st.getPath());
 					
 					
 					file = fs.open(st.getPath());

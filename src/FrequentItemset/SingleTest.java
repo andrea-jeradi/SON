@@ -1,6 +1,7 @@
 package FrequentItemset;
 
 import java.io.File;
+import java.io.IOException;
 
 public class SingleTest {
 
@@ -12,7 +13,12 @@ public class SingleTest {
 		
 		File name = new File("/home/student/Downloads/sample/prova2.txt");
 		Apriori a= new Apriori(name,40);
-		a.start();
+		try {
+			a.start();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 		
 		

@@ -1,12 +1,22 @@
 package SON;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.util.Collections;
 import java.util.StringTokenizer;
 import java.util.Vector;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -84,6 +94,13 @@ public class MRStep1 extends Configured implements Tool {
   
   
   public static void main(String args[]) throws Exception {
+	  
+		try {
+			System.setOut(new PrintStream(new File("/home/student/doje/Log.txt")));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	  
 	if (args.length != 4) {
       System.out.println("Usage: SON <num_reducers> <support_threshold> <input_path> <output_path>");
       System.exit(0);
@@ -97,15 +114,18 @@ public class MRStep1 extends Configured implements Tool {
 	
 	
 	Configuration conf = new Configuration();
-	conf.set("mapred.map.child.java.opts", "-Xmx512m");
+	//conf.set("mapred.map.child.java.opts", "-Xmx2048m");
 	conf.setInt("s", supportThreshold);
+	//conf.set("dfs.blocksize","67108864");
+	//conf.setInt("mapreduce.job.maps",3); 
+	//conf.setLong("mapreduce.task.timeout",1800000); 
 	  
 	
 	
     int nRecord = ToolRunner.run(conf, new MRStep1(numReducers, inputPath, tmpOutputDir), args);
     conf.setInt("basketReaded", nRecord);
     
-    int res = ToolRunner.run(conf, new MRStep2(numReducers, inputPath, outputDir), args);
+    int res =0;// ToolRunner.run(conf, new MRStep2(numReducers, inputPath, outputDir), args);
     
     System.exit(res);
   }
@@ -117,6 +137,33 @@ class MRStep1Mapper extends Mapper<LongWritable, //input key type //è l offset 
 									IntWritable> {//change Object to output value type
 
 	private Vector<Vector<Integer>> baskets;
+	BufferedWriter  bw;
+	FSDataOutputStream out;
+	
+	public MRStep1Mapper(){
+		Configuration conf = new Configuration(); 
+		FileSystem fs;
+
+		try {
+			Path outFile= new Path("/output/doje/OUTPUT/log/log_"+this+".txt");
+			fs = FileSystem.get(conf);
+			
+			
+			 out = fs.create(outFile);
+			
+			
+			bw = new BufferedWriter(new OutputStreamWriter(out));
+			
+			
+			bw.write("blocco:\n");
+			bw.flush();
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		
+	}
 	
 	@Override
   	protected void setup(Context context){
@@ -130,6 +177,9 @@ class MRStep1Mapper extends Mapper<LongWritable, //input key type //è l offset 
 		
 		String line = value.toString();
 		baskets.add(createBasket(line));
+		//System.out.println(line+"\n");
+		//bw.write(line+"\n");
+		
 		
   	}
 	
@@ -151,8 +201,13 @@ class MRStep1Mapper extends Mapper<LongWritable, //input key type //è l offset 
   
   	@Override
   	protected void cleanup(Context context) throws IOException, InterruptedException {
-  		System.out.println("soglia map="+context.getConfiguration().getInt("s", 100));
-  		Apriori a = new Apriori(baskets,context.getConfiguration().getInt("s", 100));
+  		//System.out.println("soglia map="+context.getConfiguration().getInt("s", 100));
+  		bw.write("fine dio...:\n");
+  		bw.close();
+  		out.close();
+  	
+  		
+  		/*Apriori a = new Apriori(baskets,context.getConfiguration().getInt("s", 100));
 		a.start();
 		
 		Itemset app = new Itemset();
@@ -161,7 +216,7 @@ class MRStep1Mapper extends Mapper<LongWritable, //input key type //è l offset 
 		for(Vector<Integer> itemset: a.getCandidateItemset()){
 			app.set(itemset);
 			context.write(app, one);
-		}
+		}*/
 		
 	}
 }
