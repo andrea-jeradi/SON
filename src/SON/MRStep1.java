@@ -3,6 +3,8 @@ package SON;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -95,12 +97,6 @@ public class MRStep1 extends Configured implements Tool {
   
   public static void main(String args[]) throws Exception {
 	  
-		try {
-			System.setOut(new PrintStream(new File("/home/student/doje/Log.txt")));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	  
 	if (args.length != 4) {
       System.out.println("Usage: SON <num_reducers> <support_threshold> <input_path> <output_path>");
       System.exit(0);
@@ -114,7 +110,7 @@ public class MRStep1 extends Configured implements Tool {
 	
 	
 	Configuration conf = new Configuration();
-	//conf.set("mapred.map.child.java.opts", "-Xmx2048m");
+	conf.set("mapred.map.child.java.opts", "-Xmx512m");
 	conf.setInt("s", supportThreshold);
 	//conf.set("dfs.blocksize","67108864");
 	//conf.setInt("mapreduce.job.maps",3); 
@@ -125,7 +121,7 @@ public class MRStep1 extends Configured implements Tool {
     int nRecord = ToolRunner.run(conf, new MRStep1(numReducers, inputPath, tmpOutputDir), args);
     conf.setInt("basketReaded", nRecord);
     
-    int res =0;// ToolRunner.run(conf, new MRStep2(numReducers, inputPath, outputDir), args);
+    int res = ToolRunner.run(conf, new MRStep2(numReducers, inputPath, outputDir), args);
     
     System.exit(res);
   }
@@ -137,28 +133,30 @@ class MRStep1Mapper extends Mapper<LongWritable, //input key type //è l offset 
 									IntWritable> {//change Object to output value type
 
 	private Vector<Vector<Integer>> baskets;
-	BufferedWriter  bw;
+	
 	FSDataOutputStream out;
+	BufferedWriter  bw = null;
 	
 	public MRStep1Mapper(){
 		Configuration conf = new Configuration(); 
 		FileSystem fs;
 
-		try {
-			Path outFile= new Path("/output/doje/OUTPUT/log/log_"+this+".txt");
-			fs = FileSystem.get(conf);
+	try {
+//			Path outFile= new Path("/output/doje/OUTPUT/log/log_"+this+".txt");
+//			fs = FileSystem.get(conf);
+//			
+//			
+//			 out = fs.create(outFile);
+//			
+//			
 			
-			
-			 out = fs.create(outFile);
-			
-			
-			bw = new BufferedWriter(new OutputStreamWriter(out));
-			
-			
-			bw.write("blocco:\n");
-			bw.flush();
-			
-		} catch (IOException e) {
+			bw = new BufferedWriter(new FileWriter("Temp"+this+".txt"));
+//			
+//			
+//			bw.write("blocco:\n");
+//			bw.flush();
+//			
+	} catch (IOException e) {
 			e.printStackTrace();
 		}
 		
@@ -168,6 +166,7 @@ class MRStep1Mapper extends Mapper<LongWritable, //input key type //è l offset 
 	@Override
   	protected void setup(Context context){
 		baskets = new Vector<Vector<Integer>>();
+
   	}
 	
 	@Override
@@ -175,11 +174,13 @@ class MRStep1Mapper extends Mapper<LongWritable, //input key type //è l offset 
 						  Text value, //input value type
 						  Context context) throws IOException, InterruptedException {
 		
-		String line = value.toString();
-		baskets.add(createBasket(line));
-		//System.out.println(line+"\n");
-		//bw.write(line+"\n");
 		
+		//if(value.toString() != null)bw.write(value.toString()+"\n");
+		
+		String line = value.toString();
+		//baskets.add(createBasket(line));
+		//System.out.println(line+"\n");
+		bw.write(line+"\n");
 		
   	}
 	
@@ -202,21 +203,24 @@ class MRStep1Mapper extends Mapper<LongWritable, //input key type //è l offset 
   	@Override
   	protected void cleanup(Context context) throws IOException, InterruptedException {
   		//System.out.println("soglia map="+context.getConfiguration().getInt("s", 100));
-  		bw.write("fine dio...:\n");
-  		bw.close();
-  		out.close();
-  	
-  		
+  		//bw.write("fine dio...:\n");
+  		//bw.close();
+  		//out.close();
+  		File f = new File("Temp"+this+".txt");
+  		Apriori a = new Apriori(f,context.getConfiguration().getInt("s", 100));
+  		a.start();
   		/*Apriori a = new Apriori(baskets,context.getConfiguration().getInt("s", 100));
 		a.start();
-		
+		*/
 		Itemset app = new Itemset();
 		IntWritable one = new IntWritable(1);
 		
 		for(Vector<Integer> itemset: a.getCandidateItemset()){
 			app.set(itemset);
 			context.write(app, one);
-		}*/
+		}
+		
+		f.delete();
 		
 	}
 }
