@@ -52,6 +52,10 @@ public class MRStep2 extends Configured implements Tool {
 	//set job output format
 	job.setOutputFormatClass(TextOutputFormat.class);
 	
+	//Opzionale:set the combiner class
+	if(conf.getBoolean("useCombiner", false))
+		job.setCombinerClass(MRStep2Combiner.class);	
+	
 //	job.setSortComparatorClass(ItemsetComparator.class);
 	
 	//add the input file as job input (from HDFS)
@@ -74,10 +78,10 @@ public class MRStep2 extends Configured implements Tool {
 
 }
 
-class MRStep2Mapper extends Mapper<LongWritable, //input key type //è l offset del file testo
-									Text, //input value type //è la riga i-esima del file
-									Itemset, //output key type
-									IntWritable> {//change Object to output value type
+class MRStep2Mapper extends Mapper<LongWritable, 
+									Text,
+									Itemset,
+									IntWritable> {
 
 	HashMap<Vector<Integer>,Integer> candidateItemset = new HashMap<Vector<Integer>,Integer>();
 	
@@ -181,10 +185,10 @@ class MRStep2Mapper extends Mapper<LongWritable, //input key type //è l offset 
 	}
 }
 
-class MRStep2Reducer extends Reducer<Itemset, //input key type
-									IntWritable, //input value type
-									Itemset, //output key type
-									IntWritable> { //output value type
+class MRStep2Reducer extends Reducer<Itemset,
+									IntWritable,
+									Itemset,
+									IntWritable> { 
 	
 	double frequent;
 	IntWritable count = new IntWritable();
@@ -198,8 +202,8 @@ class MRStep2Reducer extends Reducer<Itemset, //input key type
 	}
 
 	@Override
-	protected void reduce(Itemset key, //input key type
-							Iterable<IntWritable> values, //input value type
+	protected void reduce(Itemset key,
+							Iterable<IntWritable> values, 
 							Context context) throws IOException, InterruptedException {
 		
 		int sum=0;
@@ -211,6 +215,29 @@ class MRStep2Reducer extends Reducer<Itemset, //input key type
 			  context.write(key, count);
 		  }
 		
+	
+	}
+}
+
+
+class MRStep2Combiner extends Reducer<Itemset,
+									IntWritable,
+									Itemset,
+									IntWritable> { 
+	
+	IntWritable count = new IntWritable();	
+	
+	@Override
+	protected void reduce(Itemset key,
+							Iterable<IntWritable> values, 
+							Context context) throws IOException, InterruptedException {
+		
+		int sum=0;
+		for(IntWritable i:values)
+			sum += i.get();
+		
+		count.set(sum);
+		context.write(key, count);
 	
 	}
 }

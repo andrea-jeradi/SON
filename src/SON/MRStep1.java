@@ -52,6 +52,10 @@ public class MRStep1 extends Configured implements Tool {
 	//set job output format
 	job.setOutputFormatClass(TextOutputFormat.class);
 	
+	//Opzionale:set the combiner class
+	if(conf.getBoolean("useCombiner", false))
+		job.setCombinerClass(MRStep1Combiner.class);
+	
 //	job.setSortComparatorClass(ItemsetComparator.class);
 	
 	//add the input file as job input (from HDFS)
@@ -87,8 +91,8 @@ public class MRStep1 extends Configured implements Tool {
   
   public static void main(String args[]) throws Exception {
 	  
-	if (args.length != 4) {
-      System.out.println("Usage: SON <num_reducers> <support_threshold> <input_path> <output_path>");
+	if (args.length < 4) {
+      System.out.println("Usage: SON <num_reducers> <support_threshold> <input_path> <output_path> [optionName=optionValue]* ");
       System.exit(0);
     }
 	
@@ -104,9 +108,16 @@ public class MRStep1 extends Configured implements Tool {
 	conf.setInt("s", supportThreshold);
 	//conf.set("dfs.blocksize","67108864");
 	//conf.setInt("mapreduce.job.maps",3); 
-	//conf.setLong("mapreduce.task.timeout",1800000); 
-	  
+	//conf.setLong("mapreduce.task.timeout",1800000);
 	
+	//gestisto gli argomenti non obbligatori
+	for(int i=4; i < args.length; i++){
+		if(args[i].contains("sizeOfChunk"))
+			conf.setInt("sizeOfChunk", Integer.parseInt(args[i].split("=")[1]));  
+		else if(args[i].contains("useCombiner"))
+			conf.setBoolean("useCombiner", Boolean.parseBoolean(args[i].split("=")[1]));  
+		
+	}
 	
     int nRecord = ToolRunner.run(conf, new MRStep1(numReducers, inputPath, tmpOutputDir), args);
     conf.setInt("basketReaded", nRecord);
@@ -117,10 +128,10 @@ public class MRStep1 extends Configured implements Tool {
   }
 }
 
-class MRStep1Mapper extends Mapper<LongWritable, //input key type //è l offset del file testo
-									Text, //input value type //è la riga i-esima del file
-									Itemset, //output key type
-									IntWritable> {//change Object to output value type
+class MRStep1Mapper extends Mapper<LongWritable,
+									Text,
+									Itemset,
+									IntWritable> {
 
 	Vector<File> chunks;
 	int nFile;
@@ -135,7 +146,7 @@ class MRStep1Mapper extends Mapper<LongWritable, //input key type //è l offset 
 		nFile = 0;
 		currentSize = 0;
 		chunks = new Vector<File>(); 
-		sizeOfChunk=37500;
+		sizeOfChunk = context.getConfiguration().getInt("sizeOfChunk", -1);
 		
 		chunks.add(new File("Temp"+this+"_"+nFile+".txt"));
 		bw = new BufferedWriter(new FileWriter(chunks.get(nFile)));
@@ -143,8 +154,8 @@ class MRStep1Mapper extends Mapper<LongWritable, //input key type //è l offset 
   	}
 	
 	@Override
-  	protected void map( LongWritable key, //input key type
-						  Text value, //input value type
+  	protected void map( LongWritable key,
+						  Text value, 
 						  Context context) throws IOException, InterruptedException {
 		
 		
@@ -166,11 +177,7 @@ class MRStep1Mapper extends Mapper<LongWritable, //input key type //è l offset 
   
   	@Override
   	protected void cleanup(Context context) throws IOException, InterruptedException {
-  		//System.out.println("soglia map="+context.getConfiguration().getInt("s", 100));
-  		//bw.write("fine dio...:\n");
-  		//bw.close();
-  		//out.close();
-  		//File f = new File("Temp"+this+".txt");
+
   		int s = context.getConfiguration().getInt("s", 100);
   		Itemset app = new Itemset();
 		IntWritable one = new IntWritable(1);
@@ -203,8 +210,27 @@ class MRStep1Reducer extends Reducer<Itemset,
 	
 
 	@Override
-	protected void reduce(Itemset key, //input key type
-							Iterable<IntWritable> values, //input value type
+	protected void reduce(Itemset key,
+							Iterable<IntWritable> values,
+							Context context) throws IOException, InterruptedException {
+		
+		context.write(key, one);
+	
+	}
+}
+
+
+class MRStep1Combiner extends Reducer<Itemset,
+										IntWritable,
+										Itemset,
+										IntWritable> {
+	
+	private IntWritable one = new IntWritable(1);
+	
+	
+	@Override
+	protected void reduce(Itemset key, 
+							Iterable<IntWritable> values, 
 							Context context) throws IOException, InterruptedException {
 		
 		context.write(key, one);
