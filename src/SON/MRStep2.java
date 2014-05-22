@@ -3,7 +3,9 @@ package SON;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.StringTokenizer;
 import java.util.Vector;
 
 import org.apache.hadoop.conf.Configuration;
@@ -109,7 +111,7 @@ class MRStep2Mapper extends Mapper<LongWritable, //input key type //è l offset 
 					
 						while ((text = input.readLine()) != null) {
 							text= text.substring(0, text.length()-2).trim();
-							candidateItemset.put(MRStep1Mapper.createBasket(text), 0);
+							candidateItemset.put(createBasket(text), 0);
 						}
 				}
 			}
@@ -127,7 +129,7 @@ class MRStep2Mapper extends Mapper<LongWritable, //input key type //è l offset 
 						  Context context) throws IOException, InterruptedException {
 		
 		String line = value.toString();
-		Vector<Integer> basket = MRStep1Mapper.createBasket(line); 
+		Vector<Integer> basket = createBasket(line); 
 		boolean find;
 		
 		for(Vector<Integer> itemset :candidateItemset.keySet()){
@@ -146,7 +148,19 @@ class MRStep2Mapper extends Mapper<LongWritable, //input key type //è l offset 
   	}
 	
 
-	
+	public static Vector<Integer> createBasket(String text){
+		StringTokenizer st = null;
+		Vector<Integer> items = new Vector<Integer>();
+		
+		st = new StringTokenizer(text); // Tokenizzo il basket.
+			
+		while(st.hasMoreTokens()) {
+			items.add(Integer.parseInt(st.nextToken())); // Aggiungo ogni item al vettore.
+		}
+		
+		Collections.sort(items);
+		return items;
+	}
   	
   
   	@Override

@@ -1,24 +1,14 @@
 package SON;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.io.PrintStream;
-import java.util.Collections;
-import java.util.StringTokenizer;
+import java.util.GregorianCalendar;
 import java.util.Vector;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
-import org.apache.hadoop.fs.FSDataInputStream;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -132,40 +122,23 @@ class MRStep1Mapper extends Mapper<LongWritable, //input key type //è l offset 
 									Itemset, //output key type
 									IntWritable> {//change Object to output value type
 
-	private Vector<Vector<Integer>> baskets;
+	Vector<File> chunks;
+	int nFile;
+	int sizeOfChunk;
+	int currentSize;
 	
-	FSDataOutputStream out;
-	BufferedWriter  bw = null;
+	BufferedWriter bw;
 	
-	public MRStep1Mapper(){
-		Configuration conf = new Configuration(); 
-		FileSystem fs;
-
-	try {
-//			Path outFile= new Path("/output/doje/OUTPUT/log/log_"+this+".txt");
-//			fs = FileSystem.get(conf);
-//			
-//			
-//			 out = fs.create(outFile);
-//			
-//			
-			
-			bw = new BufferedWriter(new FileWriter("Temp"+this+".txt"));
-//			
-//			
-//			bw.write("blocco:\n");
-//			bw.flush();
-//			
-	} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		
-	}
 	
 	@Override
-  	protected void setup(Context context){
-		baskets = new Vector<Vector<Integer>>();
+  	protected void setup(Context context) throws IOException{
+		nFile = 0;
+		currentSize = 0;
+		chunks = new Vector<File>(); 
+		sizeOfChunk=37500;
+		
+		chunks.add(new File("Temp"+this+"_"+nFile+".txt"));
+		bw = new BufferedWriter(new FileWriter(chunks.get(nFile)));
 
   	}
 	
@@ -175,30 +148,21 @@ class MRStep1Mapper extends Mapper<LongWritable, //input key type //è l offset 
 						  Context context) throws IOException, InterruptedException {
 		
 		
-		//if(value.toString() != null)bw.write(value.toString()+"\n");
-		
 		String line = value.toString();
-		//baskets.add(createBasket(line));
-		//System.out.println(line+"\n");
+		
+		if(sizeOfChunk != -1  && currentSize > sizeOfChunk){
+			nFile++;
+			currentSize =0;
+			chunks.add(new File("Temp"+this+"_"+nFile+".txt"));
+			bw = new BufferedWriter(new FileWriter(chunks.get(nFile)));
+		}
+		
 		bw.write(line+"\n");
+		currentSize++;
 		
   	}
 	
-	public static Vector<Integer> createBasket(String text){
-		StringTokenizer st = null;
-		Vector<Integer> items = new Vector<Integer>();
-		
-		st = new StringTokenizer(text); // Tokenizzo il basket.
-			
-		while(st.hasMoreTokens()) {
-			items.add(Integer.parseInt(st.nextToken())); // Aggiungo ogni item al vettore.
-		}
-		
-		Collections.sort(items);
-		return items;
-	}
-	
-  	
+
   
   	@Override
   	protected void cleanup(Context context) throws IOException, InterruptedException {
@@ -206,21 +170,26 @@ class MRStep1Mapper extends Mapper<LongWritable, //input key type //è l offset 
   		//bw.write("fine dio...:\n");
   		//bw.close();
   		//out.close();
-  		File f = new File("Temp"+this+".txt");
-  		Apriori a = new Apriori(f,context.getConfiguration().getInt("s", 100));
-  		a.start();
-  		/*Apriori a = new Apriori(baskets,context.getConfiguration().getInt("s", 100));
-		a.start();
-		*/
-		Itemset app = new Itemset();
+  		//File f = new File("Temp"+this+".txt");
+  		int s = context.getConfiguration().getInt("s", 100);
+  		Itemset app = new Itemset();
 		IntWritable one = new IntWritable(1);
 		
-		for(Vector<Integer> itemset: a.getCandidateItemset()){
-			app.set(itemset);
-			context.write(app, one);
-		}
-		
-		f.delete();
+  		for(File f: chunks){
+  			System.out.println("nuovo file: "+f.toString());
+  			GregorianCalendar inizio = new GregorianCalendar();
+	  		Apriori a = new Apriori(f,s);
+	  		a.start();
+	  		GregorianCalendar fine = new GregorianCalendar();
+	  		System.out.println(fine.getTimeInMillis()-inizio.getTimeInMillis());
+			
+			for(Vector<Integer> itemset: a.getCandidateItemset()){
+				app.set(itemset);
+				context.write(app, one);
+			}
+			
+			f.delete();
+  		}
 		
 	}
 }
