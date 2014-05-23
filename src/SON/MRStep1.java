@@ -56,7 +56,8 @@ public class MRStep1 extends Configured implements Tool {
 	if(conf.getBoolean("useCombiner", false))
 		job.setCombinerClass(MRStep1Combiner.class);
 	
-//	job.setSortComparatorClass(ItemsetComparator.class);
+	if(conf.getBoolean("useComparator", true))
+		job.setSortComparatorClass(ItemsetComparator.class);
 	
 	//add the input file as job input (from HDFS)
 	FileInputFormat.addInputPath(job, inputPath);
@@ -104,7 +105,7 @@ public class MRStep1 extends Configured implements Tool {
 	
 	
 	Configuration conf = new Configuration();
-	conf.set("mapred.map.child.java.opts", "-Xmx512m");
+	//conf.set("mapred.map.child.java.opts", "-Xmx512m");
 	conf.setInt("s", supportThreshold);
 	//conf.set("dfs.blocksize","67108864");
 	//conf.setInt("mapreduce.job.maps",3); 
@@ -112,10 +113,12 @@ public class MRStep1 extends Configured implements Tool {
 	
 	//gestisto gli argomenti non obbligatori
 	for(int i=4; i < args.length; i++){
-		if(args[i].contains("sizeOfChunk"))
+		if(args[i].toLowerCase().contains("sizeofchunk"))
 			conf.setInt("sizeOfChunk", Integer.parseInt(args[i].split("=")[1]));  
-		else if(args[i].contains("useCombiner"))
-			conf.setBoolean("useCombiner", Boolean.parseBoolean(args[i].split("=")[1]));  
+		else if(args[i].toLowerCase().contains("usecombiner"))
+			conf.setBoolean("useCombiner", Boolean.parseBoolean(args[i].split("=")[1]));
+		else if(args[i].toLowerCase().contains("usecomparator"))
+			conf.setBoolean("useComparator", Boolean.parseBoolean(args[i].split("=")[1]));
 		
 	}
 	
@@ -147,6 +150,7 @@ class MRStep1Mapper extends Mapper<LongWritable,
 		currentSize = 0;
 		chunks = new Vector<File>(); 
 		sizeOfChunk = context.getConfiguration().getInt("sizeOfChunk", -1);
+		System.out.println("sizeOfChunk="+sizeOfChunk);
 		
 		chunks.add(new File("Temp"+this+"_"+nFile+".txt"));
 		bw = new BufferedWriter(new FileWriter(chunks.get(nFile)));
@@ -162,6 +166,9 @@ class MRStep1Mapper extends Mapper<LongWritable,
 		String line = value.toString();
 		
 		if(sizeOfChunk != -1  && currentSize > sizeOfChunk){
+			
+			bw.close();
+			
 			nFile++;
 			currentSize =0;
 			chunks.add(new File("Temp"+this+"_"+nFile+".txt"));
@@ -170,13 +177,14 @@ class MRStep1Mapper extends Mapper<LongWritable,
 		
 		bw.write(line+"\n");
 		currentSize++;
-		
   	}
 	
 
   
   	@Override
   	protected void cleanup(Context context) throws IOException, InterruptedException {
+  		bw.close();
+  		
 
   		int s = context.getConfiguration().getInt("s", 100);
   		Itemset app = new Itemset();

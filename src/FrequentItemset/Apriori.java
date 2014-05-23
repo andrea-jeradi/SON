@@ -9,8 +9,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Vector;
 
-import org.apache.hadoop.fs.FSDataOutputStream;
-
 /**
  * @author andrea
  *
@@ -103,7 +101,8 @@ public Apriori(Vector<Vector<Integer>> baskets,int s, BufferedWriter out) {
 		}
 		
 		frequent = basketReaded*s/100.0;
-		if(bw != null) {bw.write(""+frequent+"\n");bw.flush();}
+		System.out.println("frequenza: "+frequent+"\n");
+		System.out.println("basketReaded: "+basketReaded+"\n");
 		
 		// Teniamo solo item veramente frequenti.
 		int singolinonfrequenti=0;				
@@ -116,7 +115,7 @@ public Apriori(Vector<Vector<Integer>> baskets,int s, BufferedWriter out) {
 				count++;
 		}
 		
-		if(bw != null){ bw.write("Singletone: "+(Ck.size()-singolinonfrequenti+"\n"));bw.flush();}
+		System.out.println("1-tone trovati: "+(Ck.size()-singolinonfrequenti+"\n"));
 		
 		//secondo passo A-priori : gestione coppie	
 		k=2;
@@ -153,7 +152,7 @@ public Apriori(Vector<Vector<Integer>> baskets,int s, BufferedWriter out) {
 				count++;
 		}
 		
-		if(bw != null){ bw.write(" DoubleTone: "+(Ck.size()-coppienonfreqquenti+"\n"));bw.flush();}
+		System.out.println("2-tone trovati: "+(Ck.size()-coppienonfreqquenti+"\n"));
 		
 		//gestione itemset di dimensione k>2
 		Vector<Integer> kTone, prevKtone;
@@ -205,10 +204,7 @@ public Apriori(Vector<Vector<Integer>> baskets,int s, BufferedWriter out) {
 			count=0;
 			for(Vector<Integer> itemset :Ck.keySet()){
 				if(Ck.get(itemset) < frequent){
-					Ck.put(itemset,0);
-					
-					
-					
+					Ck.put(itemset,0);			
 				}
 				else{
 					count++;
@@ -216,11 +212,9 @@ public Apriori(Vector<Vector<Integer>> baskets,int s, BufferedWriter out) {
 						if(bw != null) bw.write(item+" ");
 					if(bw != null) bw.write("\n");
 				}
-				
-				
 			}
 			
-			if(bw != null){ bw.write(k+"-tone trovati: "+count+"\n");bw.flush();}
+			System.out.println(k+"-tone trovati: "+count+"\n");
 			
 		}
 		

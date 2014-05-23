@@ -54,9 +54,10 @@ public class MRStep2 extends Configured implements Tool {
 	
 	//Opzionale:set the combiner class
 	if(conf.getBoolean("useCombiner", false))
-		job.setCombinerClass(MRStep2Combiner.class);	
+		job.setCombinerClass(MRStep2Combiner.class);
 	
-//	job.setSortComparatorClass(ItemsetComparator.class);
+	if(conf.getBoolean("useComparator", true))
+		job.setSortComparatorClass(ItemsetComparator.class);
 	
 	//add the input file as job input (from HDFS)
 	FileInputFormat.addInputPath(job, inputPath);
