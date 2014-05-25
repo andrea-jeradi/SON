@@ -6,6 +6,10 @@ package FrequentItemset;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.sql.Date;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Vector;
 
@@ -22,6 +26,7 @@ public class Apriori {
 	double frequent;
 	int s;
 	
+	DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	BufferedWriter  bw;
 	
@@ -115,7 +120,8 @@ public Apriori(Vector<Vector<Integer>> baskets,int s, BufferedWriter out) {
 				count++;
 		}
 		
-		System.out.println("1-tone trovati: "+(Ck.size()-singolinonfrequenti+"\n"));
+		System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
+				": 1-tone trovati: "+(Ck.size()-singolinonfrequenti+"\n"));
 		
 		//secondo passo A-priori : gestione coppie	
 		k=2;
@@ -152,7 +158,8 @@ public Apriori(Vector<Vector<Integer>> baskets,int s, BufferedWriter out) {
 				count++;
 		}
 		
-		System.out.println("2-tone trovati: "+(Ck.size()-coppienonfreqquenti+"\n"));
+		System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
+				": 2-tone trovati: "+(Ck.size()-coppienonfreqquenti+"\n"));
 		
 		//gestione itemset di dimensione k>2
 		Vector<Integer> kTone, prevKtone;
@@ -196,7 +203,6 @@ public Apriori(Vector<Vector<Integer>> baskets,int s, BufferedWriter out) {
 				}
 				
 				
-				
 		
 			}
 			
@@ -214,7 +220,8 @@ public Apriori(Vector<Vector<Integer>> baskets,int s, BufferedWriter out) {
 				}
 			}
 			
-			System.out.println(k+"-tone trovati: "+count+"\n");
+			System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
+								": "+k+"-tone trovati: "+count+"\n");
 			
 		}
 		

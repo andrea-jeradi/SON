@@ -11,8 +11,8 @@ public class SingleTest {
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		
-		File name = new File("/home/student/Downloads/sample/prova2.txt");
-		Apriori a= new Apriori(name,40);
+		File name = new File("/home/student/Downloads/sample/blocco.txt");
+		Apriori a= new Apriori(name,20);
 		try {
 			a.start();
 		} catch (IOException e) {
