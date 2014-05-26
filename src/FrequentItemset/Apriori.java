@@ -6,7 +6,6 @@ package FrequentItemset;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
-import java.sql.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -77,11 +76,9 @@ public Apriori(Vector<Vector<Integer>> baskets,int s, BufferedWriter out) {
 	
 	
 	public void start() throws IOException{	
-		
 		int basketReaded = 0;
 		int k = 1;
-		int count=0;
-		
+		boolean check;
 		Vector<Integer> basket;
 		
 		//gestione singletone
@@ -91,7 +88,6 @@ public Apriori(Vector<Vector<Integer>> baskets,int s, BufferedWriter out) {
 		while((basket= br.nextBasket())!= null){
 			basketReaded++;
 			
-			//genero tutte le possibili coppie
 			Vector<Integer> item;
 			Generatore g= new Generatore(basket,k);
 			while((item=g.next()) != null){
@@ -109,19 +105,12 @@ public Apriori(Vector<Vector<Integer>> baskets,int s, BufferedWriter out) {
 		System.out.println("frequenza: "+frequent+"\n");
 		System.out.println("basketReaded: "+basketReaded+"\n");
 		
-		// Teniamo solo item veramente frequenti.
-		int singolinonfrequenti=0;				
-		for(Vector<Integer> singleton :Ck.keySet()){
-			if(Ck.get(singleton) < frequent){
-				Ck.put(singleton,0);
-				singolinonfrequenti++;
-			}
-			else
-				count++;
-		}
+		Ck = cleanCk();
+		frequentItemset.set(frequentItemset.size() -1, Ck);
+		
 		
 		System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
-				": 1-tone trovati: "+(Ck.size()-singolinonfrequenti+"\n"));
+				": 1-tone trovati: "+(Ck.size()+"\n"));
 		
 		//secondo passo A-priori : gestione coppie	
 		k=2;
@@ -148,81 +137,91 @@ public Apriori(Vector<Vector<Integer>> baskets,int s, BufferedWriter out) {
 		}
 		
 		//teniamo solo le coppie frequenti	
-		int coppienonfreqquenti=0;
-		for(Vector<Integer> pair :Ck.keySet()){
-			if(Ck.get(pair) < frequent){
-				Ck.put(pair,0);
-				coppienonfreqquenti++;
-			}
-			else
-				count++;
-		}
+		Ck = cleanCk();
+		frequentItemset.set(frequentItemset.size() -1, Ck);
 		
 		System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
-				": 2-tone trovati: "+(Ck.size()-coppienonfreqquenti+"\n"));
+				": 2-tone trovati: "+(Ck.size()+"\n"));
+		System.out.flush();
 		
 		//gestione itemset di dimensione k>2
 		Vector<Integer> kTone, prevKtone;
 		Generatore genK, prevGenK;
 		boolean findNofrequnet;
-		while(count >=2 ){
+		int c,per,x=basketReaded/100; //per vis la perc a video
+		while(Ck.size() >= 2 ){
 			k++;
-			frequentItemset.add(new HashMap<Vector<Integer>,Integer>());
-			Ck = frequentItemset.get(frequentItemset.size() - 1 );
-			prevCk = frequentItemset.get(frequentItemset.size() - 2 );
+			
+			c=0;
+			per=0;
+			
+			prevCk = Ck;
+			Ck = generateCandidateItemset(k,prevCk);
+			
+			System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
+					": candidate itemset of size "+k+" = "+Ck.size()+"\n");
+			System.out.flush();
 			
 			br.reset();
 			while((basket= br.nextBasket())!= null){
 				
+				if(c++ % x ==0)
+					System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
+							": "+ (++per) +" %");
+				
+				
 				this.preProcessingBasket(basket,k,prevCk);
 				
-				//genero tutti i possibili itemset di dimensone k
-				genK = new Generatore(basket,k);
-				
-				while((kTone=genK.next()) != null){
-					//questo nuovo itemset viene preso in considerazione solo se tutti i sui sottoinsiemi di dimensione k-1 sono frequenti
-					prevGenK=new Generatore(kTone,k-1);
-					findNofrequnet=false;
-					while(!findNofrequnet && (prevKtone=prevGenK.next()) != null ){
-						findNofrequnet = !prevCk.containsKey(prevKtone) || prevCk.get(prevKtone) == 0;
-					}
-							
-					
-					if(!findNofrequnet){
-						
-						//kTone ha superato il test
-						if(!Ck.containsKey(kTone))
-							Ck.put(kTone, 1);
-						else{
-							Ck.put(kTone, Ck.get(kTone)+1);
+				//per ogni candidate itemset verifico se è presente nel basket e incremento il contatore
+				for(Vector<Integer> itemset :Ck.keySet()){
+					check=true;
+					for(int item : itemset){
+						if(!basket.contains(item)){
+							check=false;
+							break;
 						}
-						
 					}
-					
-					
+					if(check){
+						Ck.put(itemset, Ck.get(itemset)+1);
+					}
 				}
+				
+//				//genero tutti i possibili itemset di dimensone k
+//				genK = new Generatore(basket,k);
+//				
+//				while((kTone=genK.next()) != null){
+//					//questo nuovo itemset viene preso in considerazione solo se tutti i sui sottoinsiemi di dimensione k-1 sono frequenti
+//					prevGenK=new Generatore(kTone,k-1);
+//					findNofrequnet=false;
+//					while(!findNofrequnet && (prevKtone=prevGenK.next()) != null ){
+//						findNofrequnet = !prevCk.containsKey(prevKtone);// || prevCk.get(prevKtone) == 0;
+//					}
+//							
+//					
+//					if(!findNofrequnet){
+//						
+//						//kTone ha superato il test
+//						if(!Ck.containsKey(kTone))
+//							Ck.put(kTone, 1);
+//						else{
+//							Ck.put(kTone, Ck.get(kTone)+1);
+//						}
+//						
+//					}
+//					
+//					
+//				}
 				
 				
 		
 			}
-			
-						
-			count=0;
-			for(Vector<Integer> itemset :Ck.keySet()){
-				if(Ck.get(itemset) < frequent){
-					Ck.put(itemset,0);			
-				}
-				else{
-					count++;
-					for(int item: itemset)
-						if(bw != null) bw.write(item+" ");
-					if(bw != null) bw.write("\n");
-				}
-			}
+		
+			Ck = cleanCk();
+			frequentItemset.add(Ck);
 			
 			System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
-								": "+k+"-tone trovati: "+count+"\n");
-			
+								": "+k+"-tone trovati: "+Ck.size()+"\n");
+			System.out.flush();
 		}
 		
 		
@@ -240,30 +239,45 @@ public Apriori(Vector<Vector<Integer>> baskets,int s, BufferedWriter out) {
 		
 }*/
 
-
+	
 
 	
 	private void preProcessingBasket(Vector<Integer> basket, int k, HashMap<Vector<Integer>,Integer> prevCk){
 		int sum;
+		boolean check;
 		Vector<Integer> temp= new Vector<Integer>();temp.add(-1);
 		
 		//rimuovo dal basket gli item che non sono frequenti
 		for(int i=basket.size()-1; i >= 0; i--){			
 			temp.set(0, basket.get(i));
-			if(frequentItemset.get(0).get(temp)==0){
+			//if(frequentItemset.get(0).get(temp)==0){
+			if(!frequentItemset.get(0).containsKey(temp)){
 				basket.remove(i);
 			}	
 		}
 		
 		if(k>2){
-			//per ogni elemento devo verificare se � presente il almeno k dei frequent itemset di dimensione k-1
+			//per ogni elemento devo verificare se è presente il almeno k-1 dei frequent itemset di dimensione k-1
 			for(int i=basket.size()-1; i >= 0; i--){
 				sum=0;
 				for(Vector<Integer> itemset :prevCk.keySet()){
-					if(itemset.contains(basket.get(i))){
-						sum++;
-					}
-					if(sum>=(k-1)) break;
+					//if(prevCk.get(itemset) != 0){
+						if(itemset.contains(basket.get(i))){
+							//itemset contine l'elemento ma il resto del itemset è formato da elemnti presenti nel basket?
+							/*check=true;
+							for(int item : itemset){
+								if(!basket.contains(item)){
+									check=false;
+									break;
+								}		
+							}
+							if(check){*/
+								sum++;
+								if(sum>=(k-1)) break;
+							//}
+						}
+						
+					//}
 				}
 				if(sum<(k-1))
 					basket.remove(i);
@@ -287,6 +301,78 @@ public Apriori(Vector<Vector<Integer>> baskets,int s, BufferedWriter out) {
 		
 		return res;
 	}
+	
+	private HashMap<Vector<Integer>,Integer> cleanCk(){
+		HashMap<Vector<Integer>,Integer> newCk = new HashMap<Vector<Integer>,Integer>();
+		for(Vector<Integer> itemset :Ck.keySet()){
+			if(Ck.get(itemset) >= frequent){
+				newCk.put(itemset,Ck.get(itemset));
+			}
+		}
+		return newCk;
+		
+	}
+	
+	
+	private HashMap<Vector<Integer>,Integer> generateCandidateItemset(int k, HashMap<Vector<Integer>,Integer> prevCk){
+		HashMap<Vector<Integer>,Integer> newCk = new HashMap<Vector<Integer>,Integer>();
+		
+		Vector<Vector<Integer>> frItemset = new Vector<Vector<Integer>>();
+		for(Vector<Integer> itemset :prevCk.keySet()){
+			frItemset.add(itemset);
+		}
+		
+		boolean check;
+		int prevk= k-1;
+		
+		Vector<Integer> is1,is2;
+//		Vector<Integer> is3 = new Vector<Integer>();
+//		for(int i=0; i<prevk; is3.add(0),i++);
+		
+		Vector<Integer> kTone;
+		
+		for(int i=0; i<frItemset.size();i++){
+			for(int j=i+1; j<frItemset.size();j++){
+				is1=frItemset.get(i);
+				is2=frItemset.get(j);
+				
+				//System.out.println(is1 + " " + is2);
+				//devono avere tutti gli elemnti ugali tranne l'ultimo
+				check=true;
+				for(int el=0; el<prevk-1; el++){
+					if(!is1.get(el).equals(is2.get(el))){
+						check=false;
+						break;
+					}
+				}
+				if(check){
+					//devo verificare che ci sia l'itemset formato da ...
+//					for(int el=1; el<prevk; el++){
+//						is3.set(el-1, is1.get(el));
+//					}
+//					is3.set(prevk-1, is2.get(prevk-1));
+//					
+//					if(true ||frItemset.contains(is3)){
+						kTone = new Vector<Integer>();
+						for(int el=0; el<prevk; el++){
+							kTone.add(is1.get(el));
+						}
+						kTone.add(is2.get(prevk-1));
+						
+						//System.out.println("candidato:"+kTone);
+						
+						newCk.put(kTone,0);
+						
+//						//Stampo
+//						for(int el : kTone)
+//							System.out.print(el+" ");
+//						System.out.println();
+//					}
+				}
+				
+			}
+
+		}
+		return newCk;
+	}
 }
-
-
