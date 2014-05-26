@@ -81,50 +81,54 @@ public class Apriori {
 		Ck = cleanCk();
 		frequentItemset.set(frequentItemset.size() -1, Ck);
 		
+		postProcessingItemset(Ck);
+		
 		
 		System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
 				": 1-tone trovati: "+(Ck.size()+"\n"));
 		
-		//secondo passo A-priori : gestione coppie	
-		k=2;
-		frequentItemset.add(new HashMap<Vector<Integer>,Integer>());
-		Ck = frequentItemset.get(frequentItemset.size() -1);
+//		//secondo passo A-priori : gestione coppie	
+//		k=2;
+//		frequentItemset.add(new HashMap<Vector<Integer>,Integer>());
+//		Ck = frequentItemset.get(frequentItemset.size() -1);
+//		
+//		br.reset();
+//		while((basket= br.nextBasket())!= null){
+//			
+//			this.preProcessingBasket(basket,k,null);
+//			
+//			//genero tutte le possibili coppie
+//			Vector<Integer> coppia;
+//			Generatore g= new Generatore(basket,k);
+//			while((coppia=g.next()) != null){
+//				if(!Ck.containsKey(coppia))
+//					Ck.put(coppia, 1);
+//				else{
+//					Ck.put(coppia, Ck.get(coppia)+1);
+//				}
+//			}			
+//		}
+//		
+//		//teniamo solo le coppie frequenti	
+//		Ck = cleanCk();
+//		frequentItemset.set(frequentItemset.size() -1, Ck);
+//		
+//		System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
+//				": 2-tone trovati: "+(Ck.size()+"\n"));
+//		System.out.flush();
 		
-		br.reset();
-		while((basket= br.nextBasket())!= null){
-			
-			this.preProcessingBasket(basket,k,null);
-			
-			//genero tutte le possibili coppie
-			Vector<Integer> coppia;
-			Generatore g= new Generatore(basket,k);
-			while((coppia=g.next()) != null){
-				if(!Ck.containsKey(coppia))
-					Ck.put(coppia, 1);
-				else{
-					Ck.put(coppia, Ck.get(coppia)+1);
-				}
-			}			
-		}
-		
-		//teniamo solo le coppie frequenti	
-		Ck = cleanCk();
-		frequentItemset.set(frequentItemset.size() -1, Ck);
-		
-		System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
-				": 2-tone trovati: "+(Ck.size()+"\n"));
-		System.out.flush();
-		
-		//gestione itemset di dimensione k>2
+		//gestione itemset di dimensione k>=2
 		Vector<Integer> kTone, prevKtone;
 		Generatore genK, prevGenK;
 		boolean findNofrequnet;
-		int c,per,x=basketReaded/10; //per vis la perc a video
+		int c,per,x=basketReaded/10,appr1,appr2; //per vis la perc a video
 		while(Ck.size() >= 2 ){
 			k++;
 			
 			c=0;
 			per=0;
+			appr1=0;
+			appr2=0;
 			
 			prevCk = Ck;
 			Ck = generateCandidateItemset(k,prevCk);
@@ -147,7 +151,7 @@ public class Apriori {
 				
 				//scelgo quale approccio usare in base alla grandezza del busket 
 				if(Ck.size() <= combinazioni(basket.size(),k)){
-				
+					appr1++;
 					//Apprioccio 1
 					//per ogni candidate itemset verifico se è presente nel basket e incremento il contatore
 					for(Vector<Integer> itemset :Ck.keySet()){
@@ -167,7 +171,7 @@ public class Apriori {
 				else{
 //					System.out.println("basket:"+basket.size()+" comb:"+combinazioni(basket.size(),k));
 //					System.out.println("uso approccio 2");
-					
+					appr2++;
 					//Apprioccio 2
 					//genero tutti i possibili itemset di dimensone k
 					genK = new Generatore(basket,k);
@@ -200,9 +204,15 @@ public class Apriori {
 			Ck = cleanCk();
 			frequentItemset.add(Ck);
 			
+			postProcessingItemset(Ck);
+			
+			System.out.println("Approccio 1: "+appr1+ " Approccio 2: "+appr2);
+			
 			System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
 								": "+k+"-tone trovati: "+Ck.size()+"\n");
 			System.out.flush();
+			
+			
 		}
 		
 		
@@ -237,7 +247,7 @@ public class Apriori {
 	
 	private void preProcessingBasket(Vector<Integer> basket, int k, HashMap<Vector<Integer>,Integer> prevCk){
 		int sum;
-		boolean check;
+		//boolean check;
 		Vector<Integer> temp= new Vector<Integer>();temp.add(-1);
 		
 		//rimuovo dal basket gli item che non sono frequenti
@@ -368,5 +378,10 @@ public class Apriori {
 
 		}
 		return newCk;
+	}
+
+
+	protected void postProcessingItemset(HashMap<Vector<Integer>,Integer> Ck){
+		
 	}
 }

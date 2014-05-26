@@ -9,6 +9,7 @@ import java.util.Vector;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
@@ -22,8 +23,6 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
-
-import FrequentItemset.Apriori;
 
 public class MRStep1 extends Configured implements Tool {
 
@@ -109,7 +108,7 @@ public class MRStep1 extends Configured implements Tool {
 	conf.setInt("s", supportThreshold);
 	//conf.set("dfs.blocksize","67108864");
 	//conf.setInt("mapreduce.job.maps",3); 
-	//conf.setLong("mapreduce.task.timeout",1800000);
+	conf.setLong("mapreduce.task.timeout",3600000*3);
 	
 	//gestisto gli argomenti non obbligatori
 	for(int i=4; i < args.length; i++){
@@ -126,6 +125,11 @@ public class MRStep1 extends Configured implements Tool {
     conf.setInt("basketReaded", nRecord);
     
     int res = ToolRunner.run(conf, new MRStep2(numReducers, inputPath, outputDir), args);
+    
+    
+    //elimino i risultati intermedi
+    FileSystem fs = FileSystem.get(conf); 
+    fs.delete(tmpOutputDir, true); 
     
     System.exit(res);
   }
@@ -187,21 +191,17 @@ class MRStep1Mapper extends Mapper<LongWritable,
   		
 
   		int s = context.getConfiguration().getInt("s", 100);
-  		Itemset app = new Itemset();
-		IntWritable one = new IntWritable(1);
-		
+  				
   		for(File f: chunks){
   			System.out.println("nuovo file: "+f.toString());
   			GregorianCalendar inizio = new GregorianCalendar();
-	  		Apriori a = new Apriori(f,s);
+  			
+	  		MRApriori a = new MRApriori(f, s, context);
 	  		a.start();
+	  		
 	  		GregorianCalendar fine = new GregorianCalendar();
-	  		System.out.println(fine.getTimeInMillis()-inizio.getTimeInMillis());
+	  		System.out.println("tempo exec: "+(fine.getTimeInMillis()-inizio.getTimeInMillis())/1000 +" sec");
 			
-			for(Vector<Integer> itemset: a.getCandidateItemset()){
-				app.set(itemset);
-				context.write(app, one);
-			}
 			
 			f.delete();
   		}
