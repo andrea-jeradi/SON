@@ -140,17 +140,17 @@ public class Apriori {
 			br.reset();
 			while((basket= br.nextBasket())!= null){
 				
-				if(c++ % x ==0)
+				if(++c % x ==0){
 					System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
 							": " + (per=per+10) + " %");
-				
+				}
 				
 				this.preProcessingBasket(basket,k,prevCk);
 				
 				
 				
 				//scelgo quale approccio usare in base alla grandezza del busket 
-				if(Ck.size() <= combinazioni(basket.size(),k)){
+				if(Ck.size() <= k*combinazioni(basket.size(),k)){
 					appr1++;
 					//Apprioccio 1
 					//per ogni candidate itemset verifico se è presente nel basket e incremento il contatore
@@ -296,9 +296,7 @@ public class Apriori {
 		
 		for(HashMap<Vector<Integer>,Integer> Ck : frequentItemset){
 			for(Vector<Integer> itemset :Ck.keySet()){
-				if(Ck.get(itemset) != 0){
-					res.add(itemset);
-				}
+				res.add(itemset);
 			}
 		}
 		
@@ -327,20 +325,19 @@ public class Apriori {
 		
 		boolean check;
 		int prevk= k-1;
-		
+				
 		Vector<Integer> is1,is2;
-//		Vector<Integer> is3 = new Vector<Integer>();
-//		for(int i=0; i<prevk; is3.add(0),i++);
-		
 		Vector<Integer> kTone;
+		
+		Generatore prevGenK;
+		boolean findNofrequnet;
+		Vector<Integer> prevKtone;
 		
 		for(int i=0; i<frItemset.size();i++){
 			for(int j=i+1; j<frItemset.size();j++){
 				is1=frItemset.get(i);
 				is2=frItemset.get(j);
 				
-				//System.out.println(is1 + " " + is2);
-				//devono avere tutti gli elemnti ugali tranne l'ultimo
 				check=true;
 				for(int el=0; el<prevk-1; el++){
 					if(!is1.get(el).equals(is2.get(el))){
@@ -349,29 +346,23 @@ public class Apriori {
 					}
 				}
 				if(check){
-					//devo verificare che ci sia l'itemset formato da ...
-//					for(int el=1; el<prevk; el++){
-//						is3.set(el-1, is1.get(el));
-//					}
-//					is3.set(prevk-1, is2.get(prevk-1));
-//					
-//					if(true ||frItemset.contains(is3)){
-						kTone = new Vector<Integer>();
-						for(int el=0; el<prevk; el++){
-							kTone.add(is1.get(el));
-						}
-						kTone.add(is2.get(prevk-1));
-						
-						//System.out.println("candidato:"+kTone);
-						Collections.sort(kTone);
-						
+
+					kTone = new Vector<Integer>();
+					for(int el=0; el<prevk; el++){
+						kTone.add(is1.get(el));
+					}
+					kTone.add(is2.get(prevk-1));
+					Collections.sort(kTone);
+					
+					prevGenK = new Generatore(kTone, prevk);
+					findNofrequnet = false;
+					while(!findNofrequnet && (prevKtone=prevGenK.next()) != null ){
+						findNofrequnet = !frItemset.contains(prevKtone);
+					}
+					if(!findNofrequnet){
 						newCk.put(kTone,0);
-						
-//						//Stampo
-//						for(int el : kTone)
-//							System.out.print(el+" ");
-//						System.out.println();
-//					}
+					}
+
 				}
 				
 			}
