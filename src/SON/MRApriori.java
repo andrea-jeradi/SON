@@ -15,7 +15,7 @@ public class MRApriori extends Apriori {
 
 	Context context;
 	
-	public MRApriori(File file, int s, Context context) {
+	public MRApriori(File file, double s, Context context) {
 		super(file, s);
 		this.context = context;
 	}

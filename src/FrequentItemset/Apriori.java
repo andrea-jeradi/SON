@@ -23,12 +23,12 @@ public class Apriori {
 	private HashMap<Vector<Integer>,Integer> Ck, prevCk;
 	BasketReader br;
 	double frequent;
-	int s;
+	double s;
 	
 	DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
 	
-	public Apriori(File file,int s) {
+	public Apriori(File file,double s) {
 		
 		this.s = s;
 				
@@ -38,7 +38,7 @@ public class Apriori {
 		
 	}
 	
-	public Apriori(Vector<Vector<Integer>> baskets,int s) {
+	public Apriori(Vector<Vector<Integer>> baskets,double s) {
 		
 		this.s = s;
 		

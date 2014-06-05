@@ -97,7 +97,7 @@ public class MRStep1 extends Configured implements Tool {
     }
 	
 	int numReducers = Integer.parseInt(args[0]);
-	int supportThreshold = Integer.parseInt(args[1]);
+	double supportThreshold = Double.parseDouble(args[1]);
 	Path inputPath = new Path(args[2]);
 	Path outputDir = new Path(args[3]);
 	Path tmpOutputDir = new Path(outputDir.toString()+"_tmp"); 
@@ -105,7 +105,7 @@ public class MRStep1 extends Configured implements Tool {
 	
 	Configuration conf = new Configuration();
 	//conf.set("mapred.map.child.java.opts", "-Xmx512m");
-	conf.setInt("s", supportThreshold);
+	conf.setDouble("s", supportThreshold);
 	//conf.set("dfs.blocksize","67108864");
 	//conf.setInt("mapreduce.job.maps",3); 
 	conf.setLong("mapreduce.task.timeout",3600000*3);
@@ -190,7 +190,7 @@ class MRStep1Mapper extends Mapper<LongWritable,
   		bw.close();
   		
 
-  		int s = context.getConfiguration().getInt("s", 100);
+  		double s = context.getConfiguration().getDouble("s", 100);
   				
   		for(File f: chunks){
   			System.out.println("nuovo file: "+f.toString());
