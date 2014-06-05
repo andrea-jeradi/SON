@@ -235,12 +235,16 @@ class MRStep1Combiner extends Reducer<Itemset,
 	
 	private IntWritable one = new IntWritable(1);
 	
+	protected void setup(Context context) throws IOException{
+		System.out.println("creato combiner");
+	}
+	
 	
 	@Override
 	protected void reduce(Itemset key, 
 							Iterable<IntWritable> values, 
 							Context context) throws IOException, InterruptedException {
-		
+
 		context.write(key, one);
 	
 	}

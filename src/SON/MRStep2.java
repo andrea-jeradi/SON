@@ -52,9 +52,9 @@ public class MRStep2 extends Configured implements Tool {
 	//set job output format
 	job.setOutputFormatClass(TextOutputFormat.class);
 	
-	//Opzionale:set the combiner class
-	if(conf.getBoolean("useCombiner", false))
-		job.setCombinerClass(MRStep2Combiner.class);
+//	//Opzionale:set the combiner class
+//	if(conf.getBoolean("useCombiner", false))
+//		job.setCombinerClass(MRStep2Combiner.class);
 	
 	if(conf.getBoolean("useComparator", true))
 		job.setSortComparatorClass(ItemsetComparator.class);
@@ -221,25 +221,25 @@ class MRStep2Reducer extends Reducer<Itemset,
 }
 
 
-class MRStep2Combiner extends Reducer<Itemset,
-									IntWritable,
-									Itemset,
-									IntWritable> { 
-	
-	IntWritable count = new IntWritable();	
-	
-	@Override
-	protected void reduce(Itemset key,
-							Iterable<IntWritable> values, 
-							Context context) throws IOException, InterruptedException {
-		
-		int sum=0;
-		for(IntWritable i:values)
-			sum += i.get();
-		
-		count.set(sum);
-		context.write(key, count);
-	
-	}
-}
+//class MRStep2Combiner extends Reducer<Itemset,
+//									IntWritable,
+//									Itemset,
+//									IntWritable> { 
+//	
+//	IntWritable count = new IntWritable();	
+//	
+//	@Override
+//	protected void reduce(Itemset key,
+//							Iterable<IntWritable> values, 
+//							Context context) throws IOException, InterruptedException {
+//		
+//		int sum=0;
+//		for(IntWritable i:values)
+//			sum += i.get();
+//		
+//		count.set(sum);
+//		context.write(key, count);
+//	
+//	}
+//}
 
