@@ -34,9 +34,6 @@ public class MRStep2Mapper extends
 		String text;
 
 		try {
-			System.out.println(context.getWorkingDirectory().toString());
-			System.out.println(FileOutputFormat.getOutputPath(context)
-					.toString());
 
 			path = new Path(FileOutputFormat.getOutputPath(context).toString()
 					+ "_tmp");
@@ -46,7 +43,6 @@ public class MRStep2Mapper extends
 			for (FileStatus st : status) {
 				if (st.isFile()
 						&& !st.getPath().toString().contains("_SUCCESS")) {
-					// System.out.println("file dir: "+st.getPath());
 
 					file = fs.open(st.getPath());
 					input = new BufferedReader(new InputStreamReader(file));
@@ -81,8 +77,7 @@ public class MRStep2Mapper extends
 				}
 			}
 			if (find) {
-				candidateItemset
-						.put(itemset, candidateItemset.get(itemset) + 1);
+				candidateItemset.put(itemset, candidateItemset.get(itemset) + 1);
 			}
 		}
 

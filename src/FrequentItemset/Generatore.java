@@ -18,7 +18,7 @@ public class Generatore {
 		
 		for(int i=1; i<=k; i++)
 			combinazione[i] = i;       
-	    combinazione[k] --; //trucco per far si che la prima comb venga generata all'interno del ciclo es. 1�combinazione: 1,2,3  diventerebbe 1,2,2
+	    combinazione[k] --; //trucco per far si che la prima comb venga generata all'interno del ciclo es. 1 combinazione: 1,2,3  diventerebbe 1,2,2
 	    
 	    this.index = k;
 	}

@@ -37,10 +37,6 @@ public class MRStep2 extends Configured implements Tool {
 		// set job output format
 		job.setOutputFormatClass(TextOutputFormat.class);
 
-		// //Opzionale:set the combiner class
-		// if(conf.getBoolean("useCombiner", false))
-		// job.setCombinerClass(MRStep2Combiner.class);
-
 		if (conf.getBoolean("useComparator", true))
 			job.setSortComparatorClass(ItemsetComparator.class);
 

@@ -13,8 +13,7 @@ public class MRStep2Reducer extends
 
 	@Override
 	protected void setup(Context context) {
-		long basketReaded = context.getConfiguration().getInt("basketReaded",
-				Integer.MAX_VALUE);
+		int basketReaded = context.getConfiguration().getInt("basketReaded",Integer.MAX_VALUE);
 		double s = context.getConfiguration().getDouble("s", 100);
 
 		frequent = basketReaded * s / 100.0;

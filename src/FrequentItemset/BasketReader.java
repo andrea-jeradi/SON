@@ -14,19 +14,20 @@ import java.util.Vector;
 
 /**
  * @author andrea
- *
+ * 
  */
 public class BasketReader {
-	
+
 	private String fp;
-	
+
 	private File name;
-	
+
 	private BufferedReader input;
-	
+
 	private Vector<Vector<Integer>> baskets = null;
-	
+
 	private int current;
+
 	/**
 	 * 
 	 */
@@ -36,29 +37,29 @@ public class BasketReader {
 		try {
 			input = new BufferedReader(new FileReader(name));
 		} catch (FileNotFoundException e) {
-			System.out.println("Errore nella lettura del file: "+fp);
+			System.out.println("Errore nella lettura del file: " + fp);
 			e.printStackTrace();
 		}
-		
+
 	}
-	
-	public BasketReader(Vector<Vector<Integer>> b){
+
+	public BasketReader(Vector<Vector<Integer>> b) {
 		this.baskets = b;
 		this.current = 0;
 	}
-	
+
 	public Vector<Integer> nextBasket() {
 		String text;
 		StringTokenizer st = null;
 		Vector<Integer> items = new Vector<Integer>();
-		
-		if(baskets!=null){ //Non sto leggengo da file quindi sono nel secondo costruttore.
-			if(baskets.size()<=current)
+
+		if (baskets != null) { // Non sto leggengo da file quindi sono nel
+								// secondo costruttore.
+			if (baskets.size() <= current)
 				return null; // Finito la lettura dei baskets.
-			items = baskets.get(current); //prendo la riga corrente.
-			current++; 
-		}
-		else{
+			items = baskets.get(current); // prendo la riga corrente.
+			current++;
+		} else {
 			// Se ci sono ancora basket nel file.
 			try {
 				if ((text = input.readLine()) != null) // Leggo un basket.
@@ -66,26 +67,27 @@ public class BasketReader {
 				else
 					return null;
 			} catch (IOException e) {
-				System.out.println("Errore nella lettura del file: "+fp);
+				System.out.println("Errore nella lettura del file: " + fp);
 				e.printStackTrace();
 			}
-			
-			while(st.hasMoreTokens()) {
-				items.add(Integer.parseInt(st.nextToken())); // Aggiungo ogni item al vettore.
+
+			while (st.hasMoreTokens()) {
+				items.add(Integer.parseInt(st.nextToken())); // Aggiungo ogni
+																// item al
+																// vettore.
 			}
 		}// Chiudo else selezione costruttore.
-		
+
 		Collections.sort(items);
 		return items;
 
 	}
-	
-	public void reset(){
-		if(baskets != null) { // Sono nel secondo costruttore.
+
+	public void reset() {
+		if (baskets != null) { // Sono nel secondo costruttore.
 			current = 0;
 			return;
-		}
-		else {
+		} else {
 			try {
 				input.close();
 			} catch (IOException e) {
@@ -93,13 +95,13 @@ public class BasketReader {
 				e.printStackTrace();
 			}
 			this.name = new File(fp);
-			
+
 			try {
 				input = new BufferedReader(new FileReader(name));
 			} catch (FileNotFoundException e) {
-				System.out.println("Errore nella lettura del file: "+fp);
+				System.out.println("Errore nella lettura del file: " + fp);
 				e.printStackTrace();
-			}	
+			}
 		}
 	}
 

@@ -60,8 +60,7 @@ public class Apriori {
 				else{
 					Ck.put(item, Ck.get(item)+1);
 				}
-			}
-					
+			}			
 		}
 		
 		frequent = basketReaded*s/100.0;
@@ -79,6 +78,7 @@ public class Apriori {
 		
 		//secondo passo A-priori : gestione coppie
 		int c=0,per=0,x=basketReaded/10,appr1,appr2; //per vis la perc a video
+		
 		k=2;
 		
 		frequentItemset.add(new HashMap<Vector<Integer>,Integer>());
@@ -106,7 +106,6 @@ public class Apriori {
 			}			
 		}
 		
-		//teniamo solo le coppie frequenti	
 		Ck = cleanCk();
 		frequentItemset.set(frequentItemset.size() -1, Ck);
 		
@@ -114,7 +113,7 @@ public class Apriori {
 				": 2-tone trovati: "+(Ck.size()+"\n"));
 		System.out.flush();
 		
-		//gestione itemset di dimensione k>=2
+		//gestione itemset di dimensione k>2
 		Vector<Integer> kTone, prevKtone;
 		Generatore genK, prevGenK;
 		boolean findNofrequnet;
@@ -122,10 +121,10 @@ public class Apriori {
 		while(Ck.size() >= 2 ){
 			k++;
 			
-			c=0;
-			per=0;
-			appr1=0;
-			appr2=0;
+			c = 0;
+			per = 0;
+			appr1 = 0;
+			appr2 = 0;
 			
 			prevCk = Ck;
 			Ck = generateCandidateItemset(k,prevCk);
@@ -137,13 +136,12 @@ public class Apriori {
 			br.reset();
 			while((basket= br.nextBasket())!= null){
 				
-				if(++c % x ==0){
+				if(++c % x == 0){
 					System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
 							": " + (per=per+10) + " %");
 				}
 				
 				this.preProcessingBasket(basket,k,prevCk);
-				
 				
 				//scelgo quale approccio usare in base alla grandezza del busket 
 				if(Ck.size() <= k*combinazioni(basket.size(),k)){
@@ -178,7 +176,6 @@ public class Apriori {
 							findNofrequnet = !prevCk.containsKey(prevKtone);
 						}
 								
-						
 						if(!findNofrequnet){
 							Ck.put(kTone, Ck.get(kTone)+1);
 						}												
@@ -277,33 +274,32 @@ public class Apriori {
 		
 	}
 	
+	protected void postProcessingItemset(HashMap<Vector<Integer>,Integer> Ck){	}
+	
 	
 	private HashMap<Vector<Integer>,Integer> generateCandidateItemset(int k, HashMap<Vector<Integer>,Integer> prevCk){
-		HashMap<Vector<Integer>,Integer> newCk = new HashMap<Vector<Integer>,Integer>();
 		
+		HashMap<Vector<Integer>,Integer> newCk = new HashMap<Vector<Integer>,Integer>();
 		Vector<Vector<Integer>> frItemset = new Vector<Vector<Integer>>();
+		Vector<Integer> is1,is2, kTone, prevKtone;
+		Generatore prevGenK;
+		boolean check,findNofrequnet;
+		int prevk = k-1,j;	
+		
 		for(Vector<Integer> itemset :prevCk.keySet()){
 			frItemset.add(itemset);
-		}
-				
-		quickSort(frItemset, 0, frItemset.size()-1);
-		
-		boolean check;
-		int prevk= k-1;
-				
-		Vector<Integer> is1,is2;
-		Vector<Integer> kTone;
-		
-		Generatore prevGenK;
-		boolean findNofrequnet;
-		Vector<Integer> prevKtone;
+		}		
+		quickSort(frItemset, 0, frItemset.size()-1);		
 		
 		for(int i=0; i<frItemset.size();i++){
-			for(int j=i+1; j<frItemset.size();j++){
+			check=true;
+			j=i;
+			while(check && ++j < frItemset.size()){
+			//for(int j=i+1; j<frItemset.size();j++){
 				is1=frItemset.get(i);
 				is2=frItemset.get(j);
 				
-				check=true;
+				//check=true;
 				for(int el=0; el<prevk-1; el++){
 					if(!is1.get(el).equals(is2.get(el))){
 						check=false;
@@ -329,11 +325,10 @@ public class Apriori {
 					}
 
 				}
-				else
-					break;
+				//else
+				//	break;
 				
 			}
-
 		}
 		return newCk;
 	}
@@ -348,7 +343,6 @@ public class Apriori {
 		if (index < right){
 			quickSort(arr, index, right);
 		}
-
 	}
 	private int partition(Vector<Vector<Integer>> arr, int left, int right) {
 		
@@ -374,7 +368,7 @@ public class Apriori {
 		}
 		return i;
 	}
-	private int compare(Vector<Integer> is1, Vector<Integer> is2) {
+	public static int compare(Vector<Integer> is1, Vector<Integer> is2) {
 		if (is1.size() != is2.size())
 			return is1.size() - is2.size();
 
@@ -386,8 +380,5 @@ public class Apriori {
 
 		return 0;
 	}
-
-	protected void postProcessingItemset(HashMap<Vector<Integer>,Integer> Ck){
-		
-	}
+	
 }
