@@ -8,6 +8,8 @@ import java.util.Vector;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.WritableComparable;
 
+import FrequentItemset.Utils;
+
 public class Itemset implements WritableComparable<Itemset> {
 
 	private Vector<Integer> items;
@@ -83,7 +85,7 @@ public class Itemset implements WritableComparable<Itemset> {
 //		}
 //
 //		return 0;
-		return MRApriori.compare(this.items , is.items);
+		return Utils.compare(this.items , is.items);
 	}
 
 	@Override

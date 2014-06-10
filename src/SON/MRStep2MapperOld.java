@@ -21,15 +21,10 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
-import FrequentItemset.Utils;
-
-public class MRStep2Mapper extends
+public class MRStep2MapperOld extends
 		Mapper<LongWritable, Text, Itemset, IntWritable> {
 
-	Vector<Vector<Integer>> candidateItemsets = new Vector<Vector<Integer>>();
-	int counters[];
-	boolean flags[];
-	HashMap<Integer,Vector<Integer>> index = new HashMap<Integer,Vector<Integer>>();
+	HashMap<Vector<Integer>, Integer> candidateItemset = new HashMap<Vector<Integer>, Integer>();
 	
 	DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -43,8 +38,6 @@ public class MRStep2Mapper extends
 		FileStatus[] status;
 		String text;
 
-		Vector<Integer> itemset;
-		
 		try {
 			
 			System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
@@ -55,7 +48,7 @@ public class MRStep2Mapper extends
 					+ "_tmp");
 			fs = FileSystem.get(path.toUri(), context.getConfiguration());
 			status = fs.listStatus(path);
-			
+
 			for (FileStatus st : status) {
 				if (st.isFile()
 						&& !st.getPath().toString().contains("_SUCCESS")) {
@@ -65,32 +58,13 @@ public class MRStep2Mapper extends
 
 					while ((text = input.readLine()) != null) {
 						text = text.substring(0, text.length() - 2).trim();
-						itemset = createBasket(text);
-						candidateItemsets.add(itemset);
+						candidateItemset.put(createBasket(text), 0);
 					}
 				}
 			}
-			
-			Utils.orderItemset(candidateItemsets);
-			counters = new int[candidateItemsets.size()];
-			flags = new boolean[candidateItemsets.size()];
-			for(int i=0;i<candidateItemsets.size();i++){
-				counters[i] = 0;
-				
-				for(int item : candidateItemsets.get(i)){
-					if(!index.containsKey(item)){
-						index.put(item, new Vector<Integer>());
-					}
-					index.get(item).add(i);		
-				}
-			}
-			
-			
-			
-			
 			
 			System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
-					": creata la tabella dei candidati. dim: "+candidateItemsets.size()+"\n");
+					": creata la tabella dei candidati. dim: "+candidateItemset.size()+"\n");
 			System.out.flush();
 
 		} catch (IOException e) {
@@ -106,32 +80,19 @@ public class MRStep2Mapper extends
 		String line = value.toString();
 		Vector<Integer> basket = createBasket(line);
 		boolean find;
-		
-		for(int i=0;i<flags.length;i++)
-			flags[i] = true;
-		
-		for(int i=0;i<candidateItemsets.size();i++){
-			if(flags[i]){
-				
-				find = true;
-				for (int item : candidateItemsets.get(i)) {
-					if (!basket.contains(item)) {
-						find = false;
-						//marco tutti i candidate itemset che contengono item
-						for(int row : index.get(item)){
-							flags[row] = false; 
-						}
-						break;
-					}
+
+		for (Vector<Integer> itemset : candidateItemset.keySet()) {
+			find = true;
+			for (int item : itemset) {
+				if (!basket.contains(item)) {
+					find = false;
+					break;
 				}
-				if (find) {
-					counters[i]++;
-				}
-				
+			}
+			if (find) {
+				candidateItemset.put(itemset, candidateItemset.get(itemset) + 1);
 			}
 		}
-
-		
 
 	}
 
@@ -153,22 +114,22 @@ public class MRStep2Mapper extends
 	@Override
 	protected void cleanup(Context context) throws IOException,
 			InterruptedException {
-		
 		Itemset app = new Itemset();
 		IntWritable count = new IntWritable();
+		int temp;
 		
 		System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
 				": inizio cleanup()\n");
 		System.out.flush();
-		
-		for(int i=0;i<counters.length;i++){
-			if(counters[i]>0){
-				app.set(candidateItemsets.get(i));
-				count.set(counters[i]);
+
+		for (Vector<Integer> itemset : candidateItemset.keySet()) {
+			temp = candidateItemset.get(itemset);
+			if (temp > 0) {
+				app.set(itemset);
+				count.set(temp);
 				context.write(app, count);
 			}
 		}
-		
 		
 		System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
 				": fine cleanup()\n");

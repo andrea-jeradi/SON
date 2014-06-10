@@ -76,6 +76,9 @@ public class Apriori {
 		System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
 				": 1-tone trovati: "+(Ck.size()+"\n"));
 		
+		
+		if(false){
+		
 		//secondo passo A-priori : gestione coppie
 		int c=0,per=0,x=basketReaded/10,appr1,appr2; //per vis la perc a video
 		
@@ -197,7 +200,7 @@ public class Apriori {
 			
 		}
 		
-		
+		}//togli
 	}
 
 
@@ -289,7 +292,8 @@ public class Apriori {
 		for(Vector<Integer> itemset :prevCk.keySet()){
 			frItemset.add(itemset);
 		}		
-		quickSort(frItemset, 0, frItemset.size()-1);		
+		
+		Utils.orderItemset(frItemset);
 		
 		for(int i=0; i<frItemset.size();i++){
 			check=true;
@@ -332,53 +336,5 @@ public class Apriori {
 		}
 		return newCk;
 	}
-	
-	private void quickSort(Vector<Vector<Integer>> arr, int left, int right) {
-
-		int index = partition(arr, left, right);
-
-		if (left < index - 1){
-			quickSort(arr, left, index - 1);
-		}
-		if (index < right){
-			quickSort(arr, index, right);
-		}
-	}
-	private int partition(Vector<Vector<Integer>> arr, int left, int right) {
 		
-		int i = left, j = right;
-		Vector<Integer> tmp;
-		Vector<Integer> pivot = arr.get((left + right) / 2);
-
-		while (i <= j) {
-			while (compare(arr.get(i), pivot) < 0){// less
-				i++;
-			}
-			while (compare(arr.get(j), pivot) > 0){// greater
-				j--;
-			}
-			if (i <= j) {
-				tmp = arr.get(i);
-				arr.set(i, arr.get(j));
-				arr.set(j, tmp);
-
-				i++;
-				j--;
-			}
-		}
-		return i;
-	}
-	public static int compare(Vector<Integer> is1, Vector<Integer> is2) {
-		if (is1.size() != is2.size())
-			return is1.size() - is2.size();
-
-		for (int i = 0; i < is1.size(); i++) {
-			if (!is1.get(i).equals(is2.get(i))) {
-				return is1.get(i) - is2.get(i);
-			}
-		}
-
-		return 0;
-	}
-	
 }
