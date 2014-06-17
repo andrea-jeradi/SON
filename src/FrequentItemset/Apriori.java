@@ -77,7 +77,7 @@ public class Apriori {
 				": 1-tone trovati: "+(Ck.size()+"\n"));
 		
 		
-		if(false){
+		//if(false){
 		
 		//secondo passo A-priori : gestione coppie
 		int c=0,per=0,x=basketReaded/10,appr1,appr2; //per vis la perc a video
@@ -112,6 +112,8 @@ public class Apriori {
 		Ck = cleanCk();
 		frequentItemset.set(frequentItemset.size() -1, Ck);
 		
+		postProcessingItemset(Ck);
+		
 		System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
 				": 2-tone trovati: "+(Ck.size()+"\n"));
 		System.out.flush();
@@ -137,7 +139,7 @@ public class Apriori {
 			System.out.flush();
 			
 			br.reset();
-			while((basket= br.nextBasket())!= null){
+			while(Ck.size() > 0 && (basket= br.nextBasket()) != null){
 				
 				if(++c % x == 0){
 					System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
@@ -147,7 +149,7 @@ public class Apriori {
 				this.preProcessingBasket(basket,k,prevCk);
 				
 				//scelgo quale approccio usare in base alla grandezza del busket 
-				if(Ck.size() <= k*combinazioni(basket.size(),k)){
+				if(Ck.size() <= combinazioni(basket.size(),k)){
 					appr1++;
 					//Apprioccio 1
 					//per ogni candidate itemset verifico se è presente nel basket e incremento il contatore
@@ -172,16 +174,21 @@ public class Apriori {
 					genK = new Generatore(basket,k);
 					
 					while((kTone=genK.next()) != null){
-						//questo nuovo itemset viene preso in considerazione solo se tutti i sui sottoinsiemi di dimensione k-1 sono frequenti
-						prevGenK=new Generatore(kTone,k-1);
-						findNofrequnet=false;
-						while(!findNofrequnet && (prevKtone=prevGenK.next()) != null ){
-							findNofrequnet = !prevCk.containsKey(prevKtone);
-						}
-								
-						if(!findNofrequnet){
+//						//questo nuovo itemset viene preso in considerazione solo se tutti i sui sottoinsiemi di dimensione k-1 sono frequenti
+//						prevGenK=new Generatore(kTone,k-1);
+//						findNofrequnet=false;
+//						while(!findNofrequnet && (prevKtone=prevGenK.next()) != null ){
+//							findNofrequnet = !prevCk.containsKey(prevKtone);
+//						}
+//								
+//						if(!findNofrequnet){
+//							Ck.put(kTone, Ck.get(kTone)+1);
+//						}	
+						
+						if(Ck.containsKey(kTone)){
 							Ck.put(kTone, Ck.get(kTone)+1);
-						}												
+						}
+							
 					}
 				}						
 			}
@@ -200,13 +207,13 @@ public class Apriori {
 			
 		}
 		
-		}//togli
+		//}//togli
 	}
 
 
 
-	private int combinazioni(int n, int k){
-		int tot = 1;
+	private double combinazioni(int n, int k){
+		double tot = 1;
 		
 		for(int i=0; i<k; i++){
 			tot *= n;
