@@ -19,7 +19,12 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import FrequentItemset.Utils;
-
+/**
+ * Questa classe costruisce l'oggetto mapper che verr&agrave utilizzato nel secondo step dell'algoritmo SON.
+ * 
+ * @author Andrea Jeradi, Francesco Donato
+ *
+ */
 public class MRStep2Mapper extends
 		Mapper<LongWritable, Text, Itemset, IntWritable> {
 
@@ -88,33 +93,9 @@ public class MRStep2Mapper extends
 
 		String line = value.toString();
 		Vector<Integer> basket = createBasket(line);
-//		boolean find;
 		
 		for(int i=0;i<flags.length;i++)
 			flags[i] = true;
-		
-		
-		
-//		for(int i=0;i<candidateItemsets.size();i++){
-//			if(flags[i]){
-//				
-//				find = true;
-//				for (int item : candidateItemsets.get(i)) {
-//					if (!basket.contains(item)) {
-//						find = false;
-//						//marco tutti i candidate itemset che contengono item
-//						for(int row : index.get(item)){
-//							flags[row] = false; 
-//						}
-//						break;
-//					}
-//				}
-//				if (find) {
-//					counters[i]++;
-//				}
-//				
-//			}
-//		}
 		
 		int i=0, item;
 		while( i < candidateItemsets.size() && candidateItemsets.get(i).size() == 1){
@@ -137,7 +118,11 @@ public class MRStep2Mapper extends
 			}
 		}		
 	}
-
+	/**
+	 * Crea i basket dalla relativa stringa passatagli come parametro
+	 * @param text linea del testo da cui creare i basket.
+	 * @return Vettore di interi, dove ogni intero rappresenta un item del basket.
+	 */
 	public static Vector<Integer> createBasket(String text) {
 		StringTokenizer st = null;
 		Vector<Integer> items = new Vector<Integer>();

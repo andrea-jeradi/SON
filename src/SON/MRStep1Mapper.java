@@ -11,7 +11,12 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
-
+/**
+ * Questa classe costruisce l'oggetto mapper che verr&agrave utilizzato nel primo step di SON.
+ * 
+ * @author Andrea Jeradi, Francesco Donato
+ *
+ */
 public class MRStep1Mapper extends Mapper<LongWritable, Text, Itemset, IntWritable> {
 
 	Vector<File> chunks;
@@ -31,7 +36,6 @@ public class MRStep1Mapper extends Mapper<LongWritable, Text, Itemset, IntWritab
 
 		chunks.add(new File("Temp" + this + "_" + nFile + ".txt"));
 		bw = new BufferedWriter(new FileWriter(chunks.get(nFile)));
-
 	}
 
 	@Override
@@ -49,7 +53,6 @@ public class MRStep1Mapper extends Mapper<LongWritable, Text, Itemset, IntWritab
 			chunks.add(new File("Temp" + this + "_" + nFile + ".txt"));
 			bw = new BufferedWriter(new FileWriter(chunks.get(nFile)));
 		}
-
 		bw.write(line + "\n");
 		currentSize++;
 	}

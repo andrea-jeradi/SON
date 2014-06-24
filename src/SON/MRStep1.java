@@ -11,7 +11,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
 /**
- * Configura e esegue il primo Job dell'algoritmo MapReduce 
+ * Configura e esegue il primo Job dell'algoritmo MapReduce.
  * @author Andrea Jeradi, Francesco Donato
  *
  */

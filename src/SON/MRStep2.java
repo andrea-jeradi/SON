@@ -10,7 +10,11 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
-
+/**
+ * Configura e esegue il secondo Job dell'algoritmo MapReduce.
+ * @author Andrea Jeradi, Francesco Donato
+ *
+ */
 public class MRStep2 extends Configured implements Tool {
 
 	private int numReducers;
@@ -57,28 +61,5 @@ public class MRStep2 extends Configured implements Tool {
 		this.inputPath = inputPath;
 		this.outputDir = outputDir;
 	}
-
 }
-
-// class MRStep2Combiner extends Reducer<Itemset,
-// IntWritable,
-// Itemset,
-// IntWritable> {
-//
-// IntWritable count = new IntWritable();
-//
-// @Override
-// protected void reduce(Itemset key,
-// Iterable<IntWritable> values,
-// Context context) throws IOException, InterruptedException {
-//
-// int sum=0;
-// for(IntWritable i:values)
-// sum += i.get();
-//
-// count.set(sum);
-// context.write(key, count);
-//
-// }
-// }
 

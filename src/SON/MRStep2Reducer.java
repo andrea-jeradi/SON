@@ -4,7 +4,12 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.Reducer;
-
+/**
+ * Costruisce il Reducer utilizzato nel secondo step dell'algoritmo SON.
+ * 
+ * @author Andrea Jeradi, Francesco Donato
+ *
+ */
 public class MRStep2Reducer extends
 		Reducer<Itemset, IntWritable, Itemset, IntWritable> {
 
