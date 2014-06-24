@@ -1,6 +1,3 @@
-/**
- * 
- */
 package FrequentItemset;
 
 import java.io.BufferedReader;
