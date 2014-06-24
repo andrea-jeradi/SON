@@ -52,7 +52,11 @@ public class Apriori {
 		frequentItemset = new Vector<HashMap<Vector<Integer>,Integer>>();
 		br = new BasketReader(baskets);
 	}
-	
+	/**
+	 * Inizializza Apriori e lo esegue sul dataset.
+	 * 
+	 * @throws IOException se ci sono errori o in lettura o in scrittura dei file
+	 */
 	public void start() throws IOException{	
 		int basketReaded = 0;
 		int k = 1;
@@ -89,9 +93,6 @@ public class Apriori {
 		
 		System.out.println(dateFormat.format(Calendar.getInstance().getTime())+
 				": 1-tone trovati: "+(Ck.size()+"\n"));
-		
-		
-		//if(false){
 		
 		//secondo passo A-priori : gestione coppie
 		int c=0,per=0,x=basketReaded/10,appr1,appr2; //per vis la perc a video
@@ -188,16 +189,6 @@ public class Apriori {
 					genK = new Generatore(basket,k);
 					
 					while((kTone=genK.next()) != null){
-//						//questo nuovo itemset viene preso in considerazione solo se tutti i sui sottoinsiemi di dimensione k-1 sono frequenti
-//						prevGenK=new Generatore(kTone,k-1);
-//						findNofrequnet=false;
-//						while(!findNofrequnet && (prevKtone=prevGenK.next()) != null ){
-//							findNofrequnet = !prevCk.containsKey(prevKtone);
-//						}
-//								
-//						if(!findNofrequnet){
-//							Ck.put(kTone, Ck.get(kTone)+1);
-//						}	
 						
 						if(Ck.containsKey(kTone)){
 							Ck.put(kTone, Ck.get(kTone)+1);
@@ -274,7 +265,11 @@ public class Apriori {
 		}
 		
 	}
-	
+	/**
+	 * Ritorna l'elenco degli itemset candidati.
+	 * 
+	 * @return Vettore con l'elenco degli itemset candidati.
+	 */
 	public Vector<Vector<Integer>> getCandidateItemset(){
 		Vector<Vector<Integer>> res = new Vector<Vector<Integer>>();
 		
@@ -297,7 +292,10 @@ public class Apriori {
 		return newCk;
 		
 	}
-	
+	/**
+	 * Funzione che viene chiamata ogni volta che vengono scoperti gli itemset di dimensione k.
+	 * @param Ck Tabella degli itemset frequenti.
+	 */
 	protected void postProcessingItemset(HashMap<Vector<Integer>,Integer> Ck){	}
 	
 	
@@ -350,8 +348,6 @@ public class Apriori {
 					}
 
 				}
-				//else
-				//	break;
 				
 			}
 		}
