@@ -15,7 +15,7 @@ public class Generatore {
 	/**
 	 * Genera tutte le possibili combinazioni di k elementi contenute nel basket
 	 * @param set insieme che rappresenta il basket da cui generare le combinazioni.
-	 * @param k lunhezza delle combinazioni di item contenuti in set da generare.
+	 * @param k lunghezza delle combinazioni di item contenuti in set da generare.
 	 */
 	public Generatore(Vector<Integer> set, int k) {
 		this.set = set;
