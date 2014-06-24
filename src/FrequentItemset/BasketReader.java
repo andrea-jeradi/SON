@@ -13,7 +13,9 @@ import java.util.StringTokenizer;
 import java.util.Vector;
 
 /**
- * @author andrea
+ * Questa classe si occupa di processare i basket, prendendo come input File e occupandosi
+ * di splittarli in basket, oppure prendendo in input gi&agrave i basket splittati.
+ * @author Andrea Jeradi, Francesco Donato.
  * 
  */
 public class BasketReader {
@@ -29,7 +31,8 @@ public class BasketReader {
 	private int current;
 
 	/**
-	 * 
+	 * Costruttore della classe
+	 * @param FilePath path del file che contiene il dataset da cui estrarre i basket.
 	 */
 	public BasketReader(String FilePath) {
 		this.fp = FilePath;
@@ -42,12 +45,18 @@ public class BasketReader {
 		}
 
 	}
-
+	/**
+	 * Costruttore della classe prendi in input la sequenza di basket gi&agrave estratta dal dataset.
+	 * @param b Vettore contenente la sequenza di basket da gestire.
+	 */
 	public BasketReader(Vector<Vector<Integer>> b) {
 		this.baskets = b;
 		this.current = 0;
 	}
-
+	/**
+	 * Ritorna il basket successivo della sequenza che si sta analizzando.
+	 * @return Vettore che rappresenta il basket.
+	 */
 	public Vector<Integer> nextBasket() {
 		String text;
 		StringTokenizer st = null;
@@ -82,7 +91,9 @@ public class BasketReader {
 		return items;
 
 	}
-
+	/**
+	 * Questo metodo permette la rilettura dall'inizio della sequenza di basket.
+	 */
 	public void reset() {
 		if (baskets != null) { // Sono nel secondo costruttore.
 			current = 0;
