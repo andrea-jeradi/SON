@@ -4,7 +4,11 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ToolRunner;
-
+/**
+ * Questa classe si occupa di lanciare i processi di MapReduce secondo l'algoritmo SON.
+ * @author Andrea Jeradi, Francesco Donato
+ *
+ */
 public class Launcher {
 	
 	public static void main(String args[]) throws Exception {
@@ -19,8 +23,7 @@ public class Launcher {
 		Path inputPath = new Path(args[2]);
 		Path outputDir = new Path(args[3]);
 		Path tmpOutputDir = new Path(outputDir.toString()+"_tmp"); 
-		
-		
+
 		Configuration conf = new Configuration();
 		//conf.set("mapred.map.child.java.opts", "-Xmx512m");
 		conf.setDouble("s", supportThreshold);
@@ -43,8 +46,7 @@ public class Launcher {
 	    conf.setInt("basketReaded", nRecord);
 	    
 	    int res = ToolRunner.run(conf, new MRStep2(numReducers, inputPath, outputDir), args);
-	    
-	    
+
 	    //elimino i risultati intermedi
 	    FileSystem fs = FileSystem.get(conf); 
 	    fs.delete(tmpOutputDir, true); 

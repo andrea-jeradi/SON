@@ -10,7 +10,11 @@ import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 import org.apache.hadoop.util.Tool;
-
+/**
+ * Configura e esegue il primo Job dell'algoritmo MapReduce 
+ * @author Andrea Jeradi, Francesco Donato
+ *
+ */
 public class MRStep1 extends Configured implements Tool {
 
 	private int numReducers;

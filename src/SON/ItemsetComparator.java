@@ -1,11 +1,17 @@
 package SON;
 
 import org.apache.hadoop.io.WritableComparator;
-
+/**
+ * Questa classe costruisce un comparator per gli oggetti Itemset.
+ * @author Andrea Jeradi, Francesco Donato
+ *
+ */
 public class ItemsetComparator extends WritableComparator {
 
 	private int a, b, n;
-
+	/**
+	 * Richiama il costruttore della super classe passandogli un oggetto Itemset.
+	 */
 	protected ItemsetComparator() {
 		super(Itemset.class);
 	}
@@ -20,7 +26,6 @@ public class ItemsetComparator extends WritableComparator {
 		if (a != b) {
 			return a - b;
 		}
-
 		// secondo confronto elemento per elemento
 		n = a;
 		for (int i = 1; i <= n; i++) {

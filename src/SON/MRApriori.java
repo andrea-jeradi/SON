@@ -9,11 +9,22 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.Mapper.Context;
 
 import FrequentItemset.Apriori;
-
+/**
+ * Questa classe implementa Apriori per eseguirlo su Hadoop. Sovrascrive il metodo postProcessingItemset
+ * della classe FrequentItemset.Apriori
+ * 
+ * @author Andrea Jeradi, Francesco Donato
+ *
+ */
 public class MRApriori extends Apriori {
 
 	Context context;
-
+	/**
+	 * Costruttore della classe.
+	 * @param file File contenente il dataset da analizzare.
+	 * @param s soglia di frequenza con cui gli item devono comparire per risultare frequenti. 
+	 * @param context contesto nel quale scrivere l'output.
+	 */
 	public MRApriori(File file, double s, Context context) {
 		super(file, s);
 		this.context = context;

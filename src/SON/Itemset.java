@@ -9,13 +9,18 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.WritableComparable;
 
 import FrequentItemset.Utils;
-
+/**
+ * Questa classe costruisce un itemset di tipo WritableComparable poichè sono le chiavi utilizzate da Hadoop
+ * 
+ * @author Andrea Jeradi, Francesco Donato
+ *
+ */
 public class Itemset implements WritableComparable<Itemset> {
 
 	private Vector<Integer> items;
 
 	public Itemset() {
-		items = new Vector<Integer>();
+		this.items = new Vector<Integer>();
 	}
 
 	public Itemset(Vector<Integer> items) {
@@ -73,18 +78,6 @@ public class Itemset implements WritableComparable<Itemset> {
 
 	@Override
 	public int compareTo(Itemset is) {
-		// implement the comparison between this and tp
-//		if (this.items.size() != is.items.size()) {
-//			return this.items.size() - is.items.size();
-//		}
-//
-//		for (int i = 0; i < this.items.size(); i++) {
-//			if (!this.items.get(i).equals(is.items.get(i))) {
-//				return this.items.get(i) - is.items.get(i);
-//			}
-//		}
-//
-//		return 0;
 		return Utils.compare(this.items , is.items);
 	}
 

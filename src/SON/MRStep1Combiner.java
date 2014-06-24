@@ -4,7 +4,11 @@ import java.io.IOException;
 
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.Reducer;
-
+/**
+ * 
+ * @author Andrea Jeradi, Francesco Donato
+ *
+ */
 public class MRStep1Combiner extends
 		Reducer<Itemset, IntWritable, Itemset, IntWritable> {
 
