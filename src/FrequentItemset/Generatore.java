@@ -1,14 +1,22 @@
 package FrequentItemset;
 
 import java.util.Vector;
-
+/**
+ * Questa classe si occupa di generare le possibili combinazioni di item di lungheza k da un determinato Vettore di basket.
+ * @author Andrea Jeradi, Francesco Donato
+ *
+ */
 public class Generatore {
 	private int index;
 	private int n;
 	private int k;
 	private Vector<Integer> set;
 	Integer combinazione[];
-	
+	/**
+	 * Genera tutte le possibili combinazioni di k elementi contenute nel basket
+	 * @param set insieme che rappresenta il basket da cui generare le combinazioni.
+	 * @param k lunhezza delle combinazioni di item contenuti in set da generare.
+	 */
 	public Generatore(Vector<Integer> set, int k) {
 		this.set = set;
 		this.n = set.size();
@@ -22,7 +30,10 @@ public class Generatore {
 	    
 	    this.index = k;
 	}
-	
+	/**
+	 * Ritorna la combinazione successiva.
+	 * @return la combinazione successiva, null se non ce ne sono pi&ugrave
+	 */
 	public Vector<Integer> next(){
 		while (index > 1 || combinazione[1] < (n - k + 1)){
 	        if (combinazione[index] < n - (k - index)) { //posso incrementare in questa posizione
