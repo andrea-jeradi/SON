@@ -13,7 +13,10 @@ import java.util.HashMap;
 import java.util.Vector;
 
 /**
- * @author andrea
+ * Questa classe implementa l'algoritmo di ricerca di item frequenti Apriori.
+ * L'algoritmo ricerca gli item frequenti con complessità O(n*2^k).
+ * 
+ * @author Andrea Jeradi, Francesco Donato
  *
  */
 public class Apriori {
@@ -24,7 +27,12 @@ public class Apriori {
 	double frequent, s;
 	
 	DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-	
+	/**
+	 * Costruttore dell'algoritmo Apriori.
+	 * 
+	 * @param file File che rappresenta i dataset, da cui leggere i basket.
+	 * @param s soglia di frequenza con cui gli item devono comparire per risultare frequenti.
+	 */
 	public Apriori(File file,double s) {
 		
 		this.s = s;	
@@ -32,6 +40,12 @@ public class Apriori {
 		br = new BasketReader(file.getAbsolutePath());
 	}
 	
+	/**
+	 * Costruttore dell'algoritmo Apriori.
+	 * 
+	 * @param baskets Vettore contenente i basket da analizzare.
+	 * @param s soglia di frequenza con cui gli item devono comparire per risultare frequenti.
+	 */
 	public Apriori(Vector<Vector<Integer>> baskets,double s) {
 		
 		this.s = s;
