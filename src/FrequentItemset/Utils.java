@@ -1,13 +1,21 @@
 package FrequentItemset;
 
 import java.util.Vector;
-
+/**
+ * Questa classe fornisce due metodi utilizzati per l'ordinamento degli itemset.
+ * 
+ * @author Andrea Jeradi, Francesco Donato
+ *
+ */
 public class Utils {
-	
+	/**
+	 * Ordina gli itemset utilizzando quickSort.
+	 * @param itemset Vettore contenente vari itemset da ordinare.
+	 */
 	public static void orderItemset( Vector<Vector<Integer>> itemset){
 		quickSort(itemset, 0, itemset.size()-1);
 	}
-
+	
 	private static void quickSort(Vector<Vector<Integer>> arr, int left, int right) {
 
 		int index = partition(arr, left, right);
@@ -43,7 +51,12 @@ public class Utils {
 		}
 		return i;
 	}
-	
+	/**
+	 * Compara due itemset tra di loro.
+	 * @param is1 primo itemset da comparare.
+	 * @param is2 secondo itemset da comparare.
+	 * @return intero, 1 se l'itemset di sinistra è maggiore di quello di destra, -1 se l'itemset di destra &egrave maggiore, 0 se risultato uguali.
+	 */
 	public static int compare(Vector<Integer> is1, Vector<Integer> is2) {
 		if (is1.size() != is2.size())
 			return is1.size() - is2.size();
@@ -53,9 +66,6 @@ public class Utils {
 				return is1.get(i) - is2.get(i);
 			}
 		}
-
 		return 0;
 	}
-	
-	
 }
