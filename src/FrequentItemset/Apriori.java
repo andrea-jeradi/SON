@@ -134,9 +134,8 @@ public class Apriori {
 		System.out.flush();
 		
 		//gestione itemset di dimensione k>2
-		Vector<Integer> kTone, prevKtone;
-		Generatore genK, prevGenK;
-		boolean findNofrequnet;
+		Vector<Integer> kTone;
+		Generatore genK;
 		
 		while(Ck.size() >= 2 ){
 			k++;
@@ -211,8 +210,6 @@ public class Apriori {
 			
 			
 		}
-		
-		//}//togli
 	}
 
 
